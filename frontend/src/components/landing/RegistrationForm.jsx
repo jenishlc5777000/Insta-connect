@@ -21,7 +21,6 @@ const schema = z.object({
     .refine((v) => v.replace(/\D/g, '').length >= 10, 'Enter a valid phone number'),
   city: z.string().trim().max(80).optional(),
   workshopId: z.string().min(1, 'Select a workshop'),
-  mode: z.string().optional(),
   referralSource: z.string().optional(),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the terms and privacy policy' }) }),
 });
@@ -54,7 +53,7 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
       const res = await post('/leads/register', {
         ...values,
         city: values.city || undefined,
-        mode: selected?.mode === 'hybrid' ? values.mode || undefined : selected?.mode,
+        mode: selected?.mode === 'hybrid' ? undefined : selected?.mode,
         referralSource: values.referralSource || undefined,
         referralCode,
         utm,
@@ -96,18 +95,9 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
         />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Workshop mode">
-          {selected?.mode === 'hybrid' ? (
-            <Select {...register('mode')} options={[{ value: 'online', label: 'Online (live)' }, { value: 'offline', label: 'Offline (in person)' }]} placeholder="Choose mode" />
-          ) : (
-            <Input value={selected ? (selected.mode === 'online' ? 'Online (live)' : 'Offline (in person)') : ''} readOnly disabled />
-          )}
-        </Field>
-        <Field label="How did you hear about us?">
-          <Select {...register('referralSource')} options={SOURCES} placeholder="Select an option" />
-        </Field>
-      </div>
+      <Field label="How did you hear about us?">
+        <Select {...register('referralSource')} options={SOURCES} placeholder="Select an option" />
+      </Field>
 
       {referralCode && (
         <Field label="Influencer referral ID" hint="Applied automatically from your referral link">
