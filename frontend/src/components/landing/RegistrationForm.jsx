@@ -9,7 +9,7 @@ import { ArrowRight, BadgeCheck, Lock } from 'lucide-react';
 import { Button, Field, Input, Select } from '../ui';
 import { post, errorMessage, applyFieldErrors } from '../../services/api';
 import { useReferral } from '../../context/ReferralContext';
-import { formatDate, formatINR, effectivePrice, titleCase } from '../../utils/format';
+import { formatDate, formatINR, effectivePrice } from '../../utils/format';
 
 const schema = z.object({
   name: z.string().trim().min(2, 'Enter your full name').max(120),
@@ -20,11 +20,8 @@ const schema = z.object({
     .regex(/^\+?[0-9\s-]{8,18}$/, 'Enter a valid phone number')
     .refine((v) => v.replace(/\D/g, '').length >= 10, 'Enter a valid phone number'),
   workshopId: z.string().min(1, 'Select a workshop'),
-  referralSource: z.string().optional(),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the terms and privacy policy' }) }),
 });
-
-const SOURCES = ['Instagram', 'WhatsApp', 'YouTube', 'Facebook', 'LinkedIn', 'Friend or colleague', 'Other'].map((s) => ({ value: s, label: s }));
 
 /**
  * The influencer is never selected by the visitor: attribution is resolved by the API from the
@@ -37,7 +34,7 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
 
   const { register, handleSubmit, watch, setValue, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { workshopId: defaultWorkshopId || workshops[0]?._id || '', referralSource: utm?.source ? titleCase(utm.source) : '' },
+    defaultValues: { workshopId: defaultWorkshopId || workshops[0]?._id || '' },
   });
 
   useEffect(() => {
@@ -52,7 +49,6 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
       const res = await post('/leads/register', {
         ...values,
         mode: selected?.mode === 'hybrid' ? undefined : selected?.mode,
-        referralSource: values.referralSource || undefined,
         referralCode,
         utm,
       });
@@ -77,11 +73,8 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
         <Field label="Email address" required error={errors.email?.message}>
           <Input type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" {...register('email')} error={errors.email} />
         </Field>
-        <Field label="Phone number" required error={errors.phone?.message}>
+        <Field label="Phone number" required error={errors.phone?.message} className={compact ? '' : 'sm:col-span-2'}>
           <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="+91 98765 43210" {...register('phone')} error={errors.phone} />
-        </Field>
-        <Field label="How did you hear about us?">
-          <Select {...register('referralSource')} options={SOURCES} placeholder="Select an option" />
         </Field>
       </div>
 
