@@ -55,7 +55,7 @@ export function Navbar({ transparent }) {
   const dark = transparent; // landing pages keep the navy look
   const links = [
     { to: '/#learn', label: 'AI Video Workshop' },
-    { to: '/#about', label: 'About' },
+    { to: '/about', label: 'About' },
     { to: '/#benefits', label: 'Benefits' },
     { to: '/#faq', label: 'FAQs' },
     { to: '/become-influencer', label: 'Join as Influencer', highlight: true },
@@ -161,6 +161,7 @@ export function Footer() {
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:justify-between sm:px-6">
           <p>© {new Date().getFullYear()} {site.siteName}. All rights reserved.</p>
           <p className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <Link to="/about" className="hover:text-white">About JenCorps</Link>
             <Link to="/workshops" className="hover:text-white">Workshops</Link>
             <Link to="/login" className="hover:text-white">My registrations</Link>
             <Link to="/become-influencer" className="hover:text-white">Join as Influencer</Link>
@@ -198,7 +199,7 @@ export function ReferralBanner() {
 
 export default function PublicLayout() {
   const { pathname, hash } = useLocation();
-  const isHome = pathname === '/' || pathname === '/become-influencer' || /^\/workshops\/[^/]+$/.test(pathname);
+  const isHome = pathname === '/' || pathname === '/become-influencer' || pathname === '/about' || /^\/workshops\/[^/]+$/.test(pathname);
 
   useEffect(() => {
     if (hash) {

@@ -24,6 +24,7 @@ const Account = lazy(() => import('./pages/public/Account'));
 const Legal = lazy(() => import('./pages/public/Legal'));
 const NotFound = lazy(() => import('./pages/public/NotFound'));
 const BecomeInfluencer = lazy(() => import('./pages/public/BecomeInfluencer'));
+const About = lazy(() => import('./pages/public/About'));
 
 // Influencer
 const InfDashboard = lazy(() => import('./pages/influencer/Dashboard'));
@@ -97,6 +98,7 @@ export default function App() {
           <Route path="terms" element={<Legal kind="terms" />} />
           <Route path="privacy" element={<Legal kind="privacy" />} />
           <Route path="become-influencer" element={<BecomeInfluencer />} />
+          <Route path="about" element={<About />} />
           <Route path="join" element={<Navigate to="/become-influencer" replace />} />
           <Route path="influencer/login" element={<Login portal="influencer" />} />
           <Route path="admin/login" element={<Login portal="admin" />} />

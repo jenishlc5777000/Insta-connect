@@ -42,7 +42,7 @@ export default function VideoHeroVisual() {
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {['9:16 Reel', '4K', 'Hindi + English', 'Auto B-roll'].map((t) => (
+              {['9:16 Reel', '4K', 'Tamil + English', 'Auto B-roll'].map((t) => (
                 <span key={t} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/80">{t}</span>
               ))}
             </div>
