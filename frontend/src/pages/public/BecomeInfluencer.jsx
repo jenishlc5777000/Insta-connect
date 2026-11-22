@@ -269,7 +269,7 @@ export default function BecomeInfluencer() {
                 <Field label="Why do you want to partner with us?"><Textarea rows={3} maxLength={1000} placeholder="Tell us about your audience and how you'd promote the workshop" {...register('message')} /></Field>
                 <label className="flex items-start gap-3 text-sm text-slate-600">
                   <input type="checkbox" className="mt-0.5 size-4 shrink-0 accent-brand" {...register('consent')} />
-                  <span>I agree to the <Link to="/terms" target="_blank" className="font-medium text-brand underline">partner terms</Link> and <Link to="/privacy" target="_blank" className="font-medium text-brand underline">privacy policy</Link>, and to being contacted about this application.</span>
+                  <span>I agree to the <Link to="/policies/partner-terms" target="_blank" className="font-medium text-brand underline">partner terms</Link> and <Link to="/policies/privacy-policy" target="_blank" className="font-medium text-brand underline">privacy policy</Link>, and to being contacted about this application.</span>
                 </label>
                 {errors.consent && <p className="-mt-2 text-xs text-rose-600">{errors.consent.message}</p>}
                 <Button type="submit" className="w-full !bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] py-3.5 text-base shadow-lg shadow-pink-500/20" loading={isSubmitting}>

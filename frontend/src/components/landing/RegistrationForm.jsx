@@ -99,8 +99,9 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
         <input type="checkbox" className="mt-0.5 size-4 shrink-0 rounded accent-brand" {...register('consent')} />
         <span>
           I agree to the{' '}
-          <Link to="/terms" target="_blank" className="font-medium text-brand underline">Terms</Link> and{' '}
-          <Link to="/privacy" target="_blank" className="font-medium text-brand underline">Privacy Policy</Link>, and consent to being contacted about this workshop.
+          <Link to="/policies/terms-and-conditions" target="_blank" className="font-medium text-brand underline">Terms</Link>,{' '}
+          <Link to="/policies/refund-policy" target="_blank" className="font-medium text-brand underline">Refund Policy</Link> and{' '}
+          <Link to="/policies/privacy-policy" target="_blank" className="font-medium text-brand underline">Privacy Policy</Link>, and consent to being contacted about this workshop.
         </span>
       </label>
       {errors.consent && <p className="-mt-2 text-xs text-rose-600">{errors.consent.message}</p>}

@@ -21,7 +21,8 @@ const ForgotPassword = lazy(() => import('./pages/public/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/public/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/public/VerifyEmail'));
 const Account = lazy(() => import('./pages/public/Account'));
-const Legal = lazy(() => import('./pages/public/Legal'));
+const PolicyPage = lazy(() => import('./pages/public/Policies'));
+const PoliciesIndex = lazy(() => import('./pages/public/Policies').then((m) => ({ default: m.PoliciesIndex })));
 const NotFound = lazy(() => import('./pages/public/NotFound'));
 const BecomeInfluencer = lazy(() => import('./pages/public/BecomeInfluencer'));
 const About = lazy(() => import('./pages/public/About'));
@@ -95,8 +96,11 @@ export default function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="verify-email" element={<VerifyEmail />} />
-          <Route path="terms" element={<Legal kind="terms" />} />
-          <Route path="privacy" element={<Legal kind="privacy" />} />
+          <Route path="policies" element={<PoliciesIndex />} />
+          <Route path="policies/:slug" element={<PolicyPage />} />
+          <Route path="terms" element={<Navigate to="/policies/terms-and-conditions" replace />} />
+          <Route path="privacy" element={<Navigate to="/policies/privacy-policy" replace />} />
+          <Route path="refund-policy" element={<Navigate to="/policies/refund-policy" replace />} />
           <Route path="become-influencer" element={<BecomeInfluencer />} />
           <Route path="about" element={<About />} />
           <Route path="join" element={<Navigate to="/become-influencer" replace />} />

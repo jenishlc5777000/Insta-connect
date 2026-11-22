@@ -7,6 +7,7 @@ import { useReferral } from '../context/ReferralContext';
 import { useSite } from '../context/SiteContext';
 import { cx } from '../components/ui';
 import { firstName } from '../utils/format';
+import { policies } from '../content/policies';
 
 function ReferralChip({ dark }) {
   const { attribution } = useReferral();
@@ -158,6 +159,16 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
+        <nav aria-label="Policies" className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 py-4 text-sm sm:justify-start sm:px-6">
+          <Link to="/policies" className="font-semibold text-white hover:text-teal">Policies</Link>
+          {policies.map((p) => (
+            <Link key={p.slug} to={`/policies/${p.slug}`} className="text-slate-400 hover:text-white">
+              {p.title}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:justify-between sm:px-6">
           <p>© {new Date().getFullYear()} {site.siteName}. All rights reserved.</p>
           <p className="flex flex-wrap justify-center gap-x-4 gap-y-1">
@@ -166,8 +177,6 @@ export function Footer() {
             <Link to="/login" className="hover:text-white">My registrations</Link>
             <Link to="/become-influencer" className="hover:text-white">Join as Influencer</Link>
             <Link to="/influencer/login" className="hover:text-white">Influencer login</Link>
-            <Link to="/terms" className="hover:text-white">Terms</Link>
-            <Link to="/privacy" className="hover:text-white">Privacy</Link>
             {site.supportPhone && (
               <a href={`tel:${site.supportPhone}`} className="flex items-center gap-1 hover:text-white">
                 <Phone className="size-3" />
