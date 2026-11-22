@@ -6,7 +6,9 @@ export function formatINR(paise, { compact = false } = {}) {
   if (compact && Math.abs(rupees) >= 100000) {
     return `₹${(rupees / 100000).toLocaleString('en-IN', { maximumFractionDigits: 1 })}L`;
   }
-  return `₹${rupees.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  // Whole rupees: ₹2,000 · with paise: always two decimals (₹49.50, never ₹49.5)
+  const hasPaise = Math.round(Math.abs(rupees) * 100) % 100 !== 0;
+  return `₹${rupees.toLocaleString('en-IN', { minimumFractionDigits: hasPaise ? 2 : 0, maximumFractionDigits: 2 })}`;
 }
 
 export const rupeesToPaise = (r) => (r === '' || r === null || r === undefined ? null : Math.round(Number(r) * 100));

@@ -12,7 +12,8 @@ import {
 import { Button, Field, Input, PasswordInput, Select, Textarea, cx } from '../../components/ui';
 import { get, post, errorMessage, applyFieldErrors } from '../../services/api';
 import { useSite } from '../../context/SiteContext';
-import { useDebounce, useDocumentTitle } from '../../hooks';
+import { useDebounce, useDocumentTitle, useFetch } from '../../hooks';
+import { effectivePrice, formatINR } from '../../utils/format';
 import { CHANNELS, VIEW_RANGES } from '../../utils/audience';
 
 const NICHES = ['Video Creation', 'Tech & AI', 'Education', 'Career & Jobs', 'Business & Finance', 'Lifestyle', 'Content Creation', 'Other'].map((v) => ({ value: v, label: v }));
@@ -81,6 +82,11 @@ export default function BecomeInfluencer() {
   useDocumentTitle('Join as an Instagram influencer');
   const site = useSite();
   const rate = site.defaultCommissionRate ?? 50;
+  // Earnings example follows the workshop currently promoted on the site (price + its commission rate)
+  const { data: workshop } = useFetch('/workshops/featured');
+  const workshopRate = workshop?.commissionRate ?? rate;
+  const ticketPrice = workshop ? effectivePrice(workshop) : 200000; // paise; ₹2,000 example when no workshop is live
+  const perRegistration = Math.round((ticketPrice * workshopRate) / 100);
   const [done, setDone] = useState(null);
   const { startSession } = useAuth();
   const navigate = useNavigate();
@@ -117,7 +123,7 @@ export default function BecomeInfluencer() {
   };
 
   const perks = [
-    { icon: IndianRupee, title: `${rate}% commission`, text: `Earn ${rate}% of every paid registration that comes through your link.`, tone: 'bg-emerald-50 text-emerald-600' },
+    { icon: IndianRupee, title: `${workshopRate}% commission`, text: `Earn ${workshopRate}% of every paid registration that comes through your link.`, tone: 'bg-emerald-50 text-emerald-600' },
     { icon: Globe, title: 'Your own link', text: `A personal site like yourname.${baseHost().replace(/:\d+$/, '')} — perfect for your bio.`, tone: 'bg-brand-50 text-brand' },
     { icon: LayoutDashboard, title: 'Live dashboard', text: 'See clicks, registrations and earnings in real time.', tone: 'bg-purple-50 text-purple' },
     { icon: FolderDown, title: 'Ready promo kit', text: 'Posters, story images, reel scripts, captions and hashtags.', tone: 'bg-amber-50 text-amber-600' },
@@ -142,7 +148,7 @@ export default function BecomeInfluencer() {
               <span className="bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] bg-clip-text text-transparent">income</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-300">
-              Share our hands-on AI video creation workshops with your followers and earn <b className="text-white">{rate}% commission</b> on every paid registration — tracked automatically through your own link.
+              Share our hands-on AI video creation workshops with your followers and earn <b className="text-white">{workshopRate}% commission</b> on every paid registration — tracked automatically through your own link.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="#apply" className="btn bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] px-7 py-3.5 text-base text-white shadow-xl shadow-pink-500/25 hover:brightness-110">
@@ -156,16 +162,22 @@ export default function BecomeInfluencer() {
           <div className="relative mx-auto w-full max-w-sm">
             <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-tr from-[#dd2a7b]/40 via-purple/30 to-teal/30 blur-2xl" />
             <div className="relative rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl">
-              <p className="text-sm text-slate-300">Example: one workshop ticket</p>
+              <p className="text-sm text-slate-300">{workshop ? <>Example: <b className="text-white">{workshop.title}</b></> : 'Example: one registration'}</p>
               <div className="mt-4 space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-slate-300">Ticket price</span><b>₹2,000</b></div>
-                <div className="flex justify-between"><span className="text-slate-300">Your commission</span><b>{rate}%</b></div>
-                <div className="flex items-center justify-between rounded-xl bg-white/10 px-3 py-2.5"><span>You earn per registration</span><b className="text-xl text-emerald-300">₹{((2000 * rate) / 100).toLocaleString('en-IN')}</b></div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-300">Registration fee</span>
+                  <span>
+                    {workshop && ticketPrice < workshop.price && <span className="mr-2 text-slate-400 line-through">{formatINR(workshop.price)}</span>}
+                    <b>{formatINR(ticketPrice)}</b>
+                  </span>
+                </div>
+                <div className="flex justify-between"><span className="text-slate-300">Your commission</span><b>{workshopRate}%</b></div>
+                <div className="flex items-center justify-between rounded-xl bg-white/10 px-3 py-2.5"><span>You earn per registration</span><b className="text-xl text-emerald-300">{formatINR(perRegistration)}</b></div>
               </div>
               <div className="mt-5 border-t border-white/10 pt-4 text-sm text-slate-300">
-                <p className="flex items-center gap-2"><Sparkles className="size-4 text-amber-300" /> 20 registrations = <b className="text-white">₹{((20 * 2000 * rate) / 100).toLocaleString('en-IN')}</b></p>
+                <p className="flex items-center gap-2"><Sparkles className="size-4 text-amber-300" /> 200 registrations = <b className="text-white">{formatINR(perRegistration * 200)}</b></p>
               </div>
-              <p className="mt-3 text-[11px] text-slate-400">Illustration only. Actual earnings depend on ticket price and paid registrations.</p>
+              <p className="mt-3 text-[11px] text-slate-400">Illustration only. Actual earnings depend on the registration fee and paid registrations.</p>
             </div>
           </div>
         </div>
