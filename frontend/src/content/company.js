@@ -53,5 +53,10 @@ export const company = {
     phone: '+91 74182 91374',
     phoneHref: 'tel:+917418291374',
     whatsappHref: 'https://wa.me/917418291374',
+    emails: [
+      { label: 'Sales', address: 'contact@jencorps.com' },
+      { label: 'Support', address: 'support@jencorps.com' },
+      { label: 'Enquiries', address: 'info@jencorps.com' },
+    ],
   },
 };

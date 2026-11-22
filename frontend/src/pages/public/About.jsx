@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, ArrowUpRight, Boxes, Building2, Globe2, Lock, MapPin, MessageCircle, Phone, ShieldCheck, Smartphone, Sparkles, Clapperboard, Instagram,
+  ArrowRight, ArrowUpRight, Boxes, Building2, Globe2, Lock, Mail, MapPin, MessageCircle, Phone, ShieldCheck, Smartphone, Sparkles, Clapperboard, Instagram,
 } from 'lucide-react';
 import { company } from '../../content/company';
 import { useDocumentTitle } from '../../hooks';
@@ -183,6 +183,12 @@ export default function About() {
             <ul className="mt-5 space-y-3 text-sm">
               <li className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-white/10"><MapPin className="size-5 text-teal" /></span><span><span className="block text-xs text-slate-400">Headquarters</span>{c.contact.headquarters}</span></li>
               <li className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-white/10"><Phone className="size-5 text-teal" /></span><span><span className="block text-xs text-slate-400">Direct line</span><a href={c.contact.phoneHref} className="hover:underline">{c.contact.phone}</a></span></li>
+              {c.contact.emails?.map((e) => (
+                <li key={e.address} className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-xl bg-white/10"><Mail className="size-5 text-teal" /></span>
+                  <span className="min-w-0"><span className="block text-xs text-slate-400">{e.label}</span><a href={`mailto:${e.address}`} className="break-all hover:underline">{e.address}</a></span>
+                </li>
+              ))}
             </ul>
             <div className="mt-6 flex flex-wrap gap-2">
               <a href={c.contact.phoneHref} className="btn bg-gradient-to-r from-teal to-cyan-400 text-navy"><Phone className="size-4" /> Call now</a>
