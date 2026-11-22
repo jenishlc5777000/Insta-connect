@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0B1F3A;
+  --color-navy-800: #12294a;
+  --color-navy-700: #1b365e;
+  --color-brand: #2F6BFF;
+  --color-brand-600: #1f57e6;
+  --color-brand-50: #eef3ff;
+  --color-teal: #0A9F90;
+  --color-teal-50: #e6f7f5;
+  --color-purple: #6E4FE8;
+  --color-purple-50: #f1edfd;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+  body { @apply bg-slate-50 text-slate-800 antialiased font-sans; }
+  h1, h2, h3, h4 { @apply font-display text-navy; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand; }
+}
+
+@layer components {
+  .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-teal { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer; }
+  .btn-primary { @apply bg-brand text-white shadow-sm shadow-brand/30 hover:bg-brand-600; }
+  .btn-secondary { @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50; }
+  .btn-ghost { @apply text-slate-600 hover:bg-slate-100; }
+  .btn-danger { @apply bg-rose-600 text-white hover:bg-rose-700; }
+  .btn-teal { @apply bg-teal text-white hover:brightness-110; }
+  .btn-sm { @apply px-3 py-1.5 text-xs rounded-lg; }
+  .input { @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 shadow-xs transition focus:border-brand focus:ring-4 focus:ring-brand/10 focus:outline-none disabled:bg-slate-50; }
+  .input-error { @apply border-rose-400 focus:border-rose-500 focus:ring-rose-500/10; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .card { @apply rounded-2xl border border-slate-200/70 bg-white shadow-sm; }
+  .gradient-brand { background-image: linear-gradient(135deg, #2F6BFF 0%, #6E4FE8 100%); }
+  .gradient-hero { background-image: radial-gradient(1200px 600px at 10% -10%, rgba(47,107,255,.35), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgba(110,79,232,.35), transparent 60%), radial-gradient(700px 400px at 50% 110%, rgba(10,159,144,.25), transparent 60%), linear-gradient(180deg, #0B1F3A 0%, #0e2546 100%); }
+  .text-gradient { @apply bg-clip-text text-transparent; background-image: linear-gradient(90deg, #7aa2ff, #b59cff 50%, #4fd1c5); }
+  .skeleton { @apply animate-pulse rounded-lg bg-slate-200/80; }
+  /* Scrollable without a visible scrollbar (mouse wheel, touch and keyboard still work) */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
