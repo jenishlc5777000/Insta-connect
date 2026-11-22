@@ -19,7 +19,6 @@ const schema = z.object({
     .trim()
     .regex(/^\+?[0-9\s-]{8,18}$/, 'Enter a valid phone number')
     .refine((v) => v.replace(/\D/g, '').length >= 10, 'Enter a valid phone number'),
-  city: z.string().trim().max(80).optional(),
   workshopId: z.string().min(1, 'Select a workshop'),
   referralSource: z.string().optional(),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the terms and privacy policy' }) }),
@@ -52,7 +51,6 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
     try {
       const res = await post('/leads/register', {
         ...values,
-        city: values.city || undefined,
         mode: selected?.mode === 'hybrid' ? undefined : selected?.mode,
         referralSource: values.referralSource || undefined,
         referralCode,
@@ -82,8 +80,8 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
         <Field label="Phone number" required error={errors.phone?.message}>
           <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="+91 98765 43210" {...register('phone')} error={errors.phone} />
         </Field>
-        <Field label="City" error={errors.city?.message}>
-          <Input autoComplete="address-level2" placeholder="Your city" {...register('city')} />
+        <Field label="How did you hear about us?">
+          <Select {...register('referralSource')} options={SOURCES} placeholder="Select an option" />
         </Field>
       </div>
 
@@ -93,10 +91,6 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
           error={errors.workshopId}
           options={workshops.map((w) => ({ value: w._id, label: `${w.title} — ${formatDate(w.startDate)} — ${formatINR(effectivePrice(w))}` }))}
         />
-      </Field>
-
-      <Field label="How did you hear about us?">
-        <Select {...register('referralSource')} options={SOURCES} placeholder="Select an option" />
       </Field>
 
       {referralCode && (
