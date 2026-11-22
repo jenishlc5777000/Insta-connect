@@ -164,7 +164,7 @@ export default function About() {
       <section id="contact" className="scroll-mt-20 bg-slate-50 px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
           <div className="rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-200/70">
-            <Eyebrow>Leadership</Eyebrow>
+            <Eyebrow>{c.leadershipHeading || 'Leadership'}</Eyebrow>
             {c.leadership.map((l) => (
               <div key={l.name} className="flex items-center gap-4">
                 <span className="grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-brand to-purple font-display text-2xl font-bold text-white">{l.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>

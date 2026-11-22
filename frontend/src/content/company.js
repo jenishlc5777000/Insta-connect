@@ -46,7 +46,8 @@ export const company = {
     { name: 'Tamil United', type: 'Canada Hub', text: 'International community hub for Canada-based congregations.', url: 'https://tamilunitedchurch.ca/' },
   ],
 
-  leadership: [{ name: 'M Jenish', title: 'Managing Director' }],
+  leadershipHeading: 'Managing Director',
+  leadership: [{ name: 'M Jenish', title: 'Lead Strategist' }],
 
   contact: {
     headquarters: 'Kanyakumari, Tamil Nadu',
