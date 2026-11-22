@@ -53,7 +53,6 @@ export function Navbar({ transparent }) {
   }, []);
 
   const dark = transparent; // landing pages keep the navy look
-  const dashboard = user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'influencer' ? '/influencer/dashboard' : '/account';
   const links = [
     { to: '/#learn', label: 'AI Video Workshop' },
     { to: '/#about', label: 'About' },
@@ -81,11 +80,6 @@ export function Navbar({ transparent }) {
           ))}
         </div>
         <div className="hidden items-center gap-3 lg:flex">
-          {user && (
-            <Link to={dashboard} className={cx('text-sm font-medium', dark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-navy')}>
-              My dashboard
-            </Link>
-          )}
           {referred ? (
             <ReferralChip dark={dark} />
           ) : (
@@ -115,10 +109,12 @@ export function Navbar({ transparent }) {
               {l.label}
             </a>
           ))}
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Link to={user ? dashboard : '/login'} className="btn-secondary">
-              {user ? 'Dashboard' : 'Log in'}
-            </Link>
+          <div className={cx('mt-3 grid gap-2', user ? 'grid-cols-1' : 'grid-cols-2')}>
+            {!user && (
+              <Link to="/login" className="btn-secondary">
+                Log in
+              </Link>
+            )}
             <a href="/#register" onClick={() => setOpen(false)} className="btn bg-gradient-to-r from-teal to-cyan-400 text-navy">
               Register now
             </a>
