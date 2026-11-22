@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { LogIn } from 'lucide-react';
 import AuthCard from './AuthCard';
-import { Button, Field, Input } from '../../components/ui';
+import { Button, Field, Input, PasswordInput } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { errorMessage } from '../../services/api';
 import { useDocumentTitle } from '../../hooks';
@@ -63,7 +63,7 @@ export default function Login({ portal = 'customer' }) {
           <Input type="email" autoComplete="email" {...register('email')} error={errors.email} />
         </Field>
         <Field label="Password" error={errors.password?.message}>
-          <Input type="password" autoComplete="current-password" {...register('password')} error={errors.password} />
+          <PasswordInput autoComplete="current-password" {...register('password')} error={errors.password} />
         </Field>
         <div className="flex justify-end">
           <Link to="/forgot-password" className="text-sm font-medium text-brand">Forgot password?</Link>

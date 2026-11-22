@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
-import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Inbox, Loader2, Search, X, Copy, Check } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Inbox, Loader2, Search, X, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import { STATUS_TONES, titleCase } from '../../utils/format';
 import { useCopy } from '../../hooks';
 
@@ -36,6 +36,34 @@ export function Field({ label, error, hint, required, children, className }) {
 
 export const Input = forwardRef(function Input({ error, className, ...props }, ref) {
   return <input ref={ref} className={cx('input', error && 'input-error', className)} aria-invalid={Boolean(error)} {...props} />;
+});
+
+/** Password field with a show / hide (eye) toggle */
+export const PasswordInput = forwardRef(function PasswordInput({ error, className, ...props }, ref) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        ref={ref}
+        type={visible ? 'text' : 'password'}
+        className={cx('input pr-11', error && 'input-error', className)}
+        aria-invalid={Boolean(error)}
+        autoCapitalize="off"
+        spellCheck={false}
+        {...props}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        title={visible ? 'Hide password' : 'Show password'}
+        tabIndex={-1}
+      >
+        {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
 });
 
 export const Textarea = forwardRef(function Textarea({ error, className, rows = 4, ...props }, ref) {

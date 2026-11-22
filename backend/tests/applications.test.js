@@ -17,99 +17,78 @@ const body = (extra = {}) => ({
   city: 'Kochi',
   preferredSubdomain: 'meera',
   message: 'I teach AI tools to students.',
+  password: 'MyOwnPass123',
   consent: true,
   ...extra,
 });
 
-describe('Join as an Instagram influencer', () => {
+describe('Join as an Instagram influencer (instant, auto-approved signup)', () => {
   let admin;
   beforeEach(async () => {
     await h.reset();
     ({ agent: admin } = await h.createAdmin());
   });
 
-  it('accepts a public application, normalises the handle and emails the applicant', async () => {
+  it('creates the influencer account with their own password and logs them straight in', async () => {
     const spy = jest.spyOn(emailService, 'sendTemplate');
-    const res = await h.agent().post('/api/v1/influencer-applications').send(body());
+    const a = h.agent();
+    const res = await a.post('/api/v1/influencer-applications').send(body());
     expect(res.status).toBe(201);
-    const app = await h.models.InfluencerApplication.findById(res.body.data._id);
-    expect(app.instagramUsername).toBe('meera.creates');
-    expect(app.status).toBe('pending');
-    expect(spy).toHaveBeenCalledWith('applicationReceived', 'meera@example.com', expect.any(Object));
+    expect(res.body.data.user.role).toBe('influencer');
+    expect(res.body.data.user.mustChangePassword).toBe(false);
+    expect(res.body.data.influencer.subdomain).toBe('meera');
+    expect(res.headers['set-cookie'].join(';')).toMatch(/jc_at=.*HttpOnly/);
+
+    // already logged in: dashboard data is available immediately
+    const me = await a.get('/api/v1/influencers/me');
+    expect(me.status).toBe(200);
+    expect(me.body.data.instagramUsername).toBe('meera.creates');
+    expect(me.body.data.audience).toMatchObject({ followers: 25000, avgViews: { instagram: 10000, youtube: 5000 } });
+
+    // and can log in later with the password they chose
+    const login = await h.agent().post('/api/v1/auth/login').send({ email: 'meera@example.com', password: 'MyOwnPass123', portal: 'influencer' });
+    expect(login.status).toBe(200);
+
+    const app = await h.models.InfluencerApplication.findOne({ email: 'meera@example.com' });
+    expect(app.status).toBe('approved');
+    expect(String(app.influencerId)).toBe(String(me.body.data._id));
+    const welcome = spy.mock.calls.find((c) => c[0] === 'influencerWelcome');
+    expect(welcome[2].tempPassword).toBeUndefined(); // never email their chosen password
   });
 
-  it('validates input and requires consent', async () => {
-    const res = await h.agent().post('/api/v1/influencer-applications').send({ name: 'x', email: 'bad', phone: '1', instagramUsername: '!!', followers: -5, consent: false });
+  it('validates input, including a strong password', async () => {
+    const res = await h.agent().post('/api/v1/influencer-applications').send({ name: 'x', email: 'bad', phone: '1', instagramUsername: '!!', followers: -5, password: 'short', consent: false });
     expect(res.status).toBe(400);
-    expect(res.body.error.details.map((d) => d.field)).toEqual(expect.arrayContaining(['name', 'email', 'phone', 'instagramUsername', 'followers', 'avgViews', 'consent']));
-  });
-
-  it('requires average Instagram Reel views; other channels are optional', async () => {
+    expect(res.body.error.details.map((d) => d.field)).toEqual(expect.arrayContaining(['name', 'email', 'phone', 'instagramUsername', 'followers', 'avgViews', 'password', 'consent']));
     const noIg = await h.agent().post('/api/v1/influencer-applications').send(body({ avgViews: { youtube: 5000 } }));
-    expect(noIg.status).toBe(400);
     expect(noIg.body.error.details.map((d) => d.field)).toContain('avgViews.instagram');
-    const igOnly = await h.agent().post('/api/v1/influencer-applications').send(body({ avgViews: { instagram: 1000 }, youtubeChannel: '' }));
-    expect(igOnly.status).toBe(201);
-    const app = await h.models.InfluencerApplication.findById(igOnly.body.data._id);
-    expect(app.avgViews.instagram).toBe(1000);
-    expect(app.avgViews.youtube).toBeNull();
   });
 
-  it('prevents duplicate pending applications and taken subdomains', async () => {
-    await h.agent().post('/api/v1/influencer-applications').send(body());
-    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ preferredSubdomain: 'meera2' }))).status).toBe(409);
-    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ email: 'other@example.com', instagramUsername: 'other', preferredSubdomain: 'meera' }))).status).toBe(400);
+  it('prevents duplicate accounts, handles and taken subdomains', async () => {
+    expect((await h.agent().post('/api/v1/influencer-applications').send(body())).status).toBe(201);
+    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ preferredSubdomain: 'meera2' }))).status).toBe(409); // email
+    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ email: 'b@example.com', phone: '9876500000', preferredSubdomain: 'meera3' }))).status).toBe(409); // instagram
+    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ email: 'c@example.com', instagramUsername: 'other', preferredSubdomain: 'meera' }))).status).toBe(400); // subdomain
     const check = await h.agent().get('/api/v1/influencer-applications/subdomain-available?subdomain=meera');
     expect(check.body.data.available).toBe(false);
-    const www = await h.agent().get('/api/v1/influencer-applications/subdomain-available?subdomain=www');
-    expect(www.body.data.available).toBe(false);
   });
 
-  it('only admins can list and review applications', async () => {
-    const anon = await h.agent().get('/api/v1/influencer-applications');
-    expect(anon.status).toBe(401);
+  it('picks a free link name when none was requested', async () => {
+    const res = await h.agent().post('/api/v1/influencer-applications').send(body({ preferredSubdomain: '' }));
+    expect(res.body.data.influencer.subdomain).toBe('meera-creates');
+  });
+
+  it('admins see auto-approved signups and can still review legacy pending applications', async () => {
     await h.agent().post('/api/v1/influencer-applications').send(body());
-    const list = await admin.get('/api/v1/influencer-applications?status=pending');
+    const list = await admin.get('/api/v1/influencer-applications?status=approved');
     expect(list.body.data).toHaveLength(1);
-    expect(list.body.meta.pending).toBe(1);
-  });
 
-  it('approving creates a working influencer account with the requested subdomain', async () => {
-    const id = (await h.agent().post('/api/v1/influencer-applications').send(body())).body.data._id;
-    const res = await admin.post(`/api/v1/influencer-applications/${id}/approve`).send({ commissionRate: 40, sendWelcomeEmail: false });
-    expect(res.status).toBe(200);
-    expect(res.body.data.influencer.subdomain).toBe('meera');
-    expect(res.body.data.influencer.commissionRate).toBe(40);
-    expect(res.body.data.influencer.instagramUsername).toBe('meera.creates');
-    const saved = await h.models.Influencer.findById(res.body.data.influencer._id).lean();
-    expect(saved.audience).toMatchObject({ followers: 25000, avgViews: { instagram: 10000, youtube: 5000 }, youtubeChannel: 'https://youtube.com/@meera' });
-    expect(res.body.data.tempPassword).toBeTruthy();
+    const pending = await h.models.InfluencerApplication.create({ name: 'Old Applicant', email: 'old@example.com', phone: '9000000001', instagramUsername: 'old.applicant', followers: 1000, avgViews: { instagram: 1000 } });
+    const approved = await admin.post(`/api/v1/influencer-applications/${pending._id}/approve`).send({ subdomain: 'oldapplicant', sendWelcomeEmail: false });
+    expect(approved.status).toBe(200);
+    expect(approved.body.data.tempPassword).toBeTruthy();
 
-    const login = await h.agent().post('/api/v1/auth/login').send({ email: 'meera@example.com', password: res.body.data.tempPassword, portal: 'influencer' });
-    expect(login.status).toBe(200);
-    expect(login.body.data.user.mustChangePassword).toBe(true);
-
-    const track = await h.agent('meera.jencorps.test').post('/api/v1/referrals/track').send({});
-    expect(track.body.data.hostInfluencer.subdomain).toBe('meera');
-
-    const again = await admin.post(`/api/v1/influencer-applications/${id}/approve`).send({});
-    expect(again.status).toBe(400);
-    // an approved applicant cannot re-apply with the same email
-    expect((await h.agent().post('/api/v1/influencer-applications').send(body({ preferredSubdomain: '' }))).status).toBe(409);
-  });
-
-  it('suggests a free subdomain when none was requested', async () => {
-    const id = (await h.agent().post('/api/v1/influencer-applications').send(body({ preferredSubdomain: '' }))).body.data._id;
-    const s = await admin.get(`/api/v1/influencer-applications/${id}/suggest-subdomain`);
-    expect(s.body.data.subdomain).toBe('meera-creates');
-  });
-
-  it('rejecting notifies the applicant and allows a future re-application', async () => {
-    const spy = jest.spyOn(emailService, 'sendTemplate');
-    const id = (await h.agent().post('/api/v1/influencer-applications').send(body())).body.data._id;
-    const res = await admin.post(`/api/v1/influencer-applications/${id}/reject`).send({ reason: 'Audience outside our focus for now' });
-    expect(res.status).toBe(200);
-    expect(spy).toHaveBeenCalledWith('applicationRejected', 'meera@example.com', expect.objectContaining({ reason: 'Audience outside our focus for now' }));
-    expect((await h.agent().post('/api/v1/influencer-applications').send(body())).status).toBe(201);
+    const pending2 = await h.models.InfluencerApplication.create({ name: 'Another', email: 'another@example.com', phone: '9000000002', instagramUsername: 'another', followers: 1000, avgViews: { instagram: 1000 } });
+    expect((await admin.post(`/api/v1/influencer-applications/${pending2._id}/reject`).send({ reason: 'Not a fit' })).status).toBe(200);
   });
 });

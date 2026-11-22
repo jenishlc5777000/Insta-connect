@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Button, Field, Input, Modal } from './ui';
+import { Button, Field, Modal, PasswordInput } from './ui';
 import { post, errorMessage, applyFieldErrors } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,13 +35,13 @@ export default function ChangePasswordModal({ open, onClose, forced }) {
       {forced && <p className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">For your security, please replace the temporary password you were given.</p>}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Field label={forced ? 'Temporary password' : 'Current password'} error={errors.currentPassword?.message}>
-          <Input type="password" autoComplete="current-password" {...register('currentPassword')} error={errors.currentPassword} />
+          <PasswordInput autoComplete="current-password" {...register('currentPassword')} error={errors.currentPassword} />
         </Field>
         <Field label="New password" error={errors.newPassword?.message} hint="8+ characters with letters and numbers">
-          <Input type="password" autoComplete="new-password" {...register('newPassword')} error={errors.newPassword} />
+          <PasswordInput autoComplete="new-password" {...register('newPassword')} error={errors.newPassword} />
         </Field>
         <Field label="Confirm new password" error={errors.confirm?.message}>
-          <Input type="password" autoComplete="new-password" {...register('confirm')} error={errors.confirm} />
+          <PasswordInput autoComplete="new-password" {...register('confirm')} error={errors.confirm} />
         </Field>
         <div className="flex justify-end gap-2 pt-2">
           {!forced && (

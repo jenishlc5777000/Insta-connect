@@ -63,6 +63,12 @@ export function AuthProvider({ children }) {
     return res.data;
   }, []);
 
+  /** Adopt a session the server already started (e.g. instant influencer signup) */
+  const startSession = useCallback((data) => {
+    setSession({ user: data.user, influencer: data.influencer || null });
+    hint.set(true);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await post('/auth/logout');
@@ -76,8 +82,8 @@ export function AuthProvider({ children }) {
   const setInfluencer = useCallback((patch) => setSession((s) => ({ ...s, influencer: { ...s.influencer, ...patch } })), []);
 
   const value = useMemo(
-    () => ({ ...session, loading, login, logout, reload: loadSession, setUser, setInfluencer, setSession }),
-    [session, loading, login, logout, loadSession, setUser, setInfluencer]
+    () => ({ ...session, loading, login, logout, startSession, reload: loadSession, setUser, setInfluencer, setSession }),
+    [session, loading, login, logout, startSession, loadSession, setUser, setInfluencer]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -83,13 +83,14 @@ function serialize(inf, { revealPayout = false } = {}) {
   };
 }
 
-async function create(data, req) {
+/** options.selfSignup: the influencer registered themselves (own password, no admin involved) */
+async function create(data, req, options = {}) {
   await assertSubdomainAvailable(data.subdomain);
   if (await User.exists({ email: data.email })) throw ApiError.conflict('A user with this email already exists', [{ field: 'email' }]);
 
   const tempPassword = data.password || generatePassword();
   const result = await withTransaction(async (session) => {
-    const user = new User({ name: data.name, email: data.email, phone: data.phone, role: 'influencer', emailVerified: true, mustChangePassword: true });
+    const user = new User({ name: data.name, email: data.email, phone: data.phone, role: 'influencer', emailVerified: true, mustChangePassword: !options.selfSignup });
     await user.setPassword(tempPassword);
     await user.save(so(session));
     const influencerCode = await nextInfluencerCode(session);
@@ -106,7 +107,17 @@ async function create(data, req) {
       ],
       so(session)
     );
-    await recordAudit({ req, action: 'influencer.create', entityType: 'Influencer', entityId: influencer._id, newValue: { influencerCode, subdomain: data.subdomain, email: data.email, commissionRate: influencer.commissionRate } }, session);
+    await recordAudit(
+      {
+        req,
+        adminId: options.selfSignup ? user._id : undefined,
+        action: options.selfSignup ? 'influencer.self_signup' : 'influencer.create',
+        entityType: 'Influencer',
+        entityId: influencer._id,
+        newValue: { influencerCode, subdomain: data.subdomain, email: data.email, commissionRate: influencer.commissionRate },
+      },
+      session
+    );
     return { user, influencer };
   });
 
@@ -114,13 +125,13 @@ async function create(data, req) {
     await emailService.sendTemplate('influencerWelcome', result.user.email, {
       name: result.user.name,
       email: result.user.email,
-      tempPassword,
+      tempPassword: options.selfSignup ? undefined : tempPassword,
       loginUrl: `${env.frontendUrl}/influencer/login`,
       referralUrl: referralUrlFor(result.influencer.subdomain, result.influencer.influencerCode),
     });
   }
   result.influencer.userId = result.user;
-  return { influencer: serialize(result.influencer), tempPassword: data.password ? undefined : tempPassword };
+  return { influencer: serialize(result.influencer), tempPassword: data.password ? undefined : tempPassword, userId: result.user._id };
 }
 
 async function update(id, data, req) {

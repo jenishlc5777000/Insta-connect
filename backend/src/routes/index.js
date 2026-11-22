@@ -159,7 +159,16 @@ const appId = (req) => {
   if (!isObjectId(req.params.id)) throw ApiError.notFound('Application not found');
   return req.params.id;
 };
-appRouter.post('/', registrationLimiter, validate(v.application.apply), asyncHandler(async (req, res) => created(res, await applicationService.apply(req.body, req))));
+// Self signup: creates the influencer account and logs them straight in
+appRouter.post('/', registrationLimiter, validate(v.application.apply), asyncHandler(async (req, res) => {
+  const result = await applicationService.apply(req.body, req);
+  const user = await require('../models').User.findById(result.userId);
+  const tokenService = require('../services/tokenService');
+  tokenService.setAuthCookies(res, tokenService.signAccessToken(user), await tokenService.issueRefreshToken(user, req));
+  user.lastLoginAt = new Date();
+  await user.save();
+  created(res, { ...(await require('../services/authService').serializeSession(user)), referralUrl: result.influencer.referralUrl });
+}));
 appRouter.get('/subdomain-available', trackingLimiter, asyncHandler(async (req, res) => ok(res, await applicationService.subdomainAvailable(req.query.subdomain))));
 appRouter.get('/', ...admin, asyncHandler(async (req, res) => {
   const { items, meta } = await applicationService.list(req.query);

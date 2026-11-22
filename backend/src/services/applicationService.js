@@ -33,15 +33,31 @@ async function apply(data, req) {
     const check = await subdomainAvailable(data.preferredSubdomain);
     if (!check.available) throw ApiError.badRequest(`Subdomain "${data.preferredSubdomain}": ${check.reason}`, [{ field: 'preferredSubdomain' }]);
   }
-  let application;
+  if (await InfluencerApplication.exists({ email: data.email, status: 'pending' })) {
+    throw ApiError.conflict('We already have a pending application from you. We will get back to you soon!');
+  }
+
+  // Auto-approved self signup: account is created right away with the creator's own password.
+  const { password, consent, ...appData } = data;
+  const subdomain = data.preferredSubdomain || (await suggestSubdomain({ instagramUsername: data.instagramUsername, name: data.name }));
+  const application = await InfluencerApplication.create({ ...appData, status: 'approved', reviewedAt: new Date(), ipHash: hashIp(req.ip) });
+
+  let result;
   try {
-    application = await InfluencerApplication.create({ ...data, ipHash: hashIp(req.ip) });
+    result = await influencerService.create(
+      { name: data.name, email: data.email, phone: data.phone, subdomain, instagramUsername: data.instagramUsername, password, sendWelcomeEmail: true },
+      req,
+      { selfSignup: true }
+    );
   } catch (err) {
-    if (err.code === 11000) throw ApiError.conflict('We already have a pending application from you. We will get back to you soon!');
+    await InfluencerApplication.deleteOne({ _id: application._id }).catch(() => {});
     throw err;
   }
-  await emailService.sendTemplate('applicationReceived', application.email, { name: application.name });
-  return { _id: application._id, status: application.status };
+
+  const audience = { followers: data.followers, niche: data.niche, avgViews: data.avgViews, youtubeChannel: data.youtubeChannel, facebookPage: data.facebookPage };
+  await Influencer.updateOne({ _id: result.influencer._id }, { audience });
+  await InfluencerApplication.updateOne({ _id: application._id }, { influencerId: result.influencer._id });
+  return { applicationId: application._id, userId: result.userId, influencer: { ...result.influencer, audience } };
 }
 
 async function list(query) {
@@ -62,7 +78,7 @@ async function list(query) {
 
 /** Suggests a free subdomain: preferred -> instagram handle -> first name (+ number) */
 async function suggestSubdomain(app) {
-  const candidates = [app.preferredSubdomain, slugify(app.instagramUsername).replace(/[^a-z0-9-]/g, ''), slugify(app.name.split(' ')[0])].filter(Boolean);
+  const candidates = [app.preferredSubdomain, slugify(app.instagramUsername || '').replace(/[^a-z0-9-]/g, ''), slugify(String(app.name || '').split(' ')[0])].filter(Boolean);
   for (const c of candidates) {
     const base = c.slice(0, 30);
     if ((await subdomainAvailable(base)).available) return base;

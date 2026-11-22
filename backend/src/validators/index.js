@@ -330,6 +330,7 @@ const application = {
     city: optionalText(80),
     preferredSubdomain: subdomain.optional().or(z.literal('').transform(() => undefined)),
     message: optionalText(1000),
+    password,
     consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the partner terms' }) }),
   }),
   approve: z.object({

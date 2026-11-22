@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Instagram, IndianRupee, Globe, LayoutDashboard, FolderDown, Wallet, Send, BadgeCheck, Share2, CheckCircle2,
   Loader2, XCircle, ArrowRight, Sparkles, PartyPopper, Eye, Youtube, Facebook,
 } from 'lucide-react';
-import { Button, Field, Input, Select, Textarea, cx } from '../../components/ui';
+import { Button, Field, Input, PasswordInput, Select, Textarea, cx } from '../../components/ui';
 import { get, post, errorMessage, applyFieldErrors } from '../../services/api';
 import { useSite } from '../../context/SiteContext';
 import { useDebounce, useDocumentTitle } from '../../hooks';
@@ -41,8 +42,10 @@ const schema = z.object({
   city: z.string().optional(),
   preferredSubdomain: z.string().trim().toLowerCase().regex(/^([a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9]))?$/, '3–32 lowercase letters, numbers or hyphens').optional(),
   message: z.string().max(1000).optional(),
+  password: z.string().min(8, 'At least 8 characters').regex(/[A-Za-z]/, 'Include a letter').regex(/[0-9]/, 'Include a number'),
+  confirmPassword: z.string().min(1, 'Re-enter your password'),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept the partner terms' }) }),
-});
+}).refine((v) => v.password === v.confirmPassword, { path: ['confirmPassword'], message: 'Passwords do not match' });
 
 const baseHost = () => {
   const h = window.location.hostname.replace(/^www\./, '');
@@ -79,14 +82,17 @@ export default function BecomeInfluencer() {
   const site = useSite();
   const rate = site.defaultCommissionRate ?? 50;
   const [done, setDone] = useState(null);
+  const { startSession } = useAuth();
+  const navigate = useNavigate();
   const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm({ resolver: zodResolver(schema), defaultValues: { followers: '', avgViews: { instagram: '', youtube: '', facebook: '' } } });
   const views = watch('avgViews');
   const sub = watch('preferredSubdomain');
 
   const onSubmit = async (v) => {
     try {
-      await post('/influencer-applications', {
-        ...v,
+      const { confirmPassword, ...fields } = v;
+      const res = await post('/influencer-applications', {
+        ...fields,
         followers: Number(v.followers),
         avgViews: {
           instagram: Number(v.avgViews.instagram),
@@ -100,8 +106,11 @@ export default function BecomeInfluencer() {
         preferredSubdomain: v.preferredSubdomain || undefined,
         message: v.message || undefined,
       });
-      setDone(v.name.split(' ')[0]);
+      // Account is created and logged in: show success briefly, then open the dashboard
+      startSession(res.data);
+      setDone({ name: v.name.split(' ')[0], link: res.data.referralUrl });
       window.scrollTo({ top: document.getElementById('apply')?.offsetTop - 80, behavior: 'smooth' });
+      setTimeout(() => navigate('/influencer/dashboard', { replace: true }), 2500);
     } catch (err) {
       if (!applyFieldErrors(err, setError)) toast.error(errorMessage(err));
     }
@@ -180,8 +189,8 @@ export default function BecomeInfluencer() {
           <h2 className="mb-8 mt-16 text-center text-3xl font-extrabold">How it works</h2>
           <ol className="grid gap-4 md:grid-cols-4">
             {[
-              [Send, 'Apply', 'Fill in the form below — it takes 2 minutes.'],
-              [BadgeCheck, 'Get approved', 'Our team reviews your profile within 2–3 working days.'],
+              [Send, 'Sign up', 'Fill in the form below and set your password. It takes 2 minutes.'],
+              [BadgeCheck, 'Get your link instantly', 'Your account and referral link are ready the moment you sign up.'],
               [Share2, 'Share your link', 'Post your personal link in your bio, stories and reels.'],
               [Wallet, 'Get paid', 'Earn on every paid registration, paid out to your UPI or bank.'],
             ].map(([Icon, title, text], i) => (
@@ -202,18 +211,24 @@ export default function BecomeInfluencer() {
           {done ? (
             <div className="py-10 text-center">
               <span className="mx-auto grid size-16 place-items-center rounded-2xl bg-emerald-50 text-emerald-600"><PartyPopper className="size-8" /></span>
-              <h2 className="mt-4 text-2xl font-extrabold">Thanks, {done}! Application received 🎉</h2>
-              <p className="mx-auto mt-2 max-w-md text-slate-600">We've emailed you a confirmation. Our team will review your profile and get back to you within 2–3 working days with your login details and referral link.</p>
-              <Link to="/" className="btn-secondary mt-6">Back to home</Link>
+              <h2 className="mt-4 text-2xl font-extrabold">Welcome aboard, {done.name}! 🎉</h2>
+              <p className="mx-auto mt-2 max-w-md text-slate-600">Your influencer account is ready and you're logged in.</p>
+              {done.link && (
+                <p className="mx-auto mt-4 max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-slate-700">
+                  Your referral link: <b className="break-all text-brand">{done.link}</b>
+                </p>
+              )}
+              <p className="mt-5 flex items-center justify-center gap-2 text-sm text-slate-500"><Loader2 className="size-4 animate-spin" /> Taking you to your dashboard…</p>
+              <Link to="/influencer/dashboard" replace className="btn-primary mt-4">Go to my dashboard now</Link>
             </div>
           ) : (
             <>
               <div className="mb-6 text-center">
                 <h2 className="flex items-center justify-center gap-2.5 text-2xl font-extrabold">
                   <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white"><Instagram className="size-5" /></span>
-                  Apply as an Instagram Influencer
+                  Join as an Instagram Influencer
                 </h2>
-                <p className="mt-1.5 text-sm text-slate-500">Tell us about you and your audience</p>
+                <p className="mt-1.5 text-sm text-slate-500">Create your account. Your referral link is ready instantly.</p>
               </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -266,6 +281,16 @@ export default function BecomeInfluencer() {
                     })}
                   </div>
                 </fieldset>
+                <div className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2">
+                  <p className="text-sm font-semibold text-navy sm:col-span-2">Set your login password</p>
+                  <Field label="Create password" required error={errors.password?.message} hint="8+ characters with letters and numbers">
+                    <PasswordInput autoComplete="new-password" {...register('password')} error={errors.password} />
+                  </Field>
+                  <Field label="Confirm password" required error={errors.confirmPassword?.message}>
+                    <PasswordInput autoComplete="new-password" {...register('confirmPassword')} error={errors.confirmPassword} />
+                  </Field>
+                  <p className="-mt-1 text-xs text-slate-500 sm:col-span-2">You'll log in with your email and this password at <b>/influencer/login</b>.</p>
+                </div>
                 <Field label="Why do you want to partner with us?"><Textarea rows={3} maxLength={1000} placeholder="Tell us about your audience and how you'd promote the workshop" {...register('message')} /></Field>
                 <label className="flex items-start gap-3 text-sm text-slate-600">
                   <input type="checkbox" className="mt-0.5 size-4 shrink-0 accent-brand" {...register('consent')} />
@@ -273,7 +298,7 @@ export default function BecomeInfluencer() {
                 </label>
                 {errors.consent && <p className="-mt-2 text-xs text-rose-600">{errors.consent.message}</p>}
                 <Button type="submit" className="w-full !bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] py-3.5 text-base shadow-lg shadow-pink-500/20" loading={isSubmitting}>
-                  Submit application {!isSubmitting && <ArrowRight className="size-5" />}
+                  Create my account {!isSubmitting && <ArrowRight className="size-5" />}
                 </Button>
               </form>
             </>

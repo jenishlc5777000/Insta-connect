@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MailCheck } from 'lucide-react';
 import AuthCard from './AuthCard';
-import { Button, Field, Input } from '../../components/ui';
+import { Button, Field, Input, PasswordInput } from '../../components/ui';
 import { post, errorMessage, applyFieldErrors } from '../../services/api';
 import { useDocumentTitle } from '../../hooks';
 
@@ -52,8 +52,8 @@ export default function RegisterAccount() {
         <Field label="Full name" error={errors.name?.message}><Input autoComplete="name" {...register('name')} error={errors.name} /></Field>
         <Field label="Email" error={errors.email?.message}><Input type="email" autoComplete="email" {...register('email')} error={errors.email} /></Field>
         <Field label="Phone (optional)" error={errors.phone?.message}><Input type="tel" autoComplete="tel" {...register('phone')} error={errors.phone} /></Field>
-        <Field label="Password" error={errors.password?.message} hint="8+ characters with letters and numbers"><Input type="password" autoComplete="new-password" {...register('password')} error={errors.password} /></Field>
-        <Field label="Confirm password" error={errors.confirm?.message}><Input type="password" autoComplete="new-password" {...register('confirm')} error={errors.confirm} /></Field>
+        <Field label="Password" error={errors.password?.message} hint="8+ characters with letters and numbers"><PasswordInput autoComplete="new-password" {...register('password')} error={errors.password} /></Field>
+        <Field label="Confirm password" error={errors.confirm?.message}><PasswordInput autoComplete="new-password" {...register('confirm')} error={errors.confirm} /></Field>
         <Button type="submit" className="w-full py-3" loading={isSubmitting}>Create account</Button>
       </form>
     </AuthCard>

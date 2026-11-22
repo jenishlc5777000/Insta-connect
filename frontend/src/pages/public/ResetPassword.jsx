@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import AuthCard from './AuthCard';
-import { Button, Field, Input } from '../../components/ui';
+import { Button, Field, Input, PasswordInput } from '../../components/ui';
 import { post, errorMessage } from '../../services/api';
 import { useDocumentTitle } from '../../hooks';
 
@@ -43,8 +43,8 @@ export default function ResetPassword() {
   return (
     <AuthCard title="Choose a new password">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <Field label="New password" error={errors.password?.message} hint="8+ characters with letters and numbers"><Input type="password" autoComplete="new-password" {...register('password')} error={errors.password} /></Field>
-        <Field label="Confirm password" error={errors.confirm?.message}><Input type="password" autoComplete="new-password" {...register('confirm')} error={errors.confirm} /></Field>
+        <Field label="New password" error={errors.password?.message} hint="8+ characters with letters and numbers"><PasswordInput autoComplete="new-password" {...register('password')} error={errors.password} /></Field>
+        <Field label="Confirm password" error={errors.confirm?.message}><PasswordInput autoComplete="new-password" {...register('confirm')} error={errors.confirm} /></Field>
         <Button type="submit" className="w-full py-3" loading={isSubmitting}>Update password</Button>
       </form>
     </AuthCard>
