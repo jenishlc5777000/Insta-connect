@@ -12,6 +12,7 @@ const payments = require('../controllers/paymentController');
 const commissions = require('../controllers/commissionController');
 const misc = require('../controllers/miscControllers');
 const applicationService = require('../services/applicationService');
+const deleteService = require('../services/deleteService');
 const { asyncHandler, ok, created, isObjectId } = require('../utils/helpers');
 const ApiError = require('../utils/ApiError');
 
@@ -59,6 +60,10 @@ infRouter.patch('/:id', ...admin, validate(v.influencer.update), influencers.upd
 infRouter.patch('/:id/status', ...admin, validate(v.influencer.status), influencers.setStatus);
 infRouter.post('/:id/reset-password', ...admin, influencers.resetPassword);
 infRouter.delete('/:id/avatar', ...admin, influencers.removeAvatar);
+infRouter.delete('/:id', ...admin, asyncHandler(async (req, res) => {
+  if (!isObjectId(req.params.id)) throw ApiError.notFound('Influencer not found');
+  ok(res, await deleteService.deleteInfluencer(req.params.id, req));
+}));
 infRouter.get('/:id/performance', ...admin, influencers.performance);
 infRouter.get('/:id/leads', ...admin, influencers.leads);
 infRouter.get('/:id/earnings', ...admin, influencers.earnings);
@@ -80,11 +85,18 @@ leadRouter.post('/register', registrationLimiter, optionalAuth, validate(v.lead.
 leadRouter.get('/status/:id', optionalAuth, leads.status);
 leadRouter.get('/export', ...admin, leads.export);
 leadRouter.post('/attendance/bulk', ...admin, validate(v.lead.bulkAttendance), leads.bulkAttendance);
+leadRouter.post('/delete', ...admin, validate(v.lead.bulkDelete), asyncHandler(async (req, res) => ok(res, await deleteService.deleteLeads(req.body.leadIds, req))));
 leadRouter.get('/', ...admin, leads.list);
 leadRouter.get('/:id', ...admin, leads.get);
 leadRouter.patch('/:id', ...admin, validate(v.lead.adminUpdate), leads.update);
 leadRouter.patch('/:id/attribution', ...admin, validate(v.lead.attribution), leads.reassignAttribution);
 leadRouter.patch('/:id/attendance', ...admin, validate(v.lead.attendance), leads.setAttendance);
+leadRouter.delete('/:id', ...admin, asyncHandler(async (req, res) => {
+  if (!isObjectId(req.params.id)) throw ApiError.notFound('Lead not found');
+  const result = await deleteService.deleteLeads([req.params.id], req);
+  if (result.blocked.length) throw ApiError.conflict(result.blocked[0].reason === 'not found' ? 'Lead not found' : `Cannot delete: ${result.blocked[0].reason}`);
+  ok(res, result);
+}));
 
 /* -------------------------------- /referrals ------------------------------ */
 const refRouter = express.Router();
@@ -160,6 +172,7 @@ appRouter.get('/:id/suggest-subdomain', ...admin, asyncHandler(async (req, res) 
 }));
 appRouter.post('/:id/approve', ...admin, validate(v.application.approve), asyncHandler(async (req, res) => ok(res, await applicationService.approve(appId(req), req.body, req))));
 appRouter.post('/:id/reject', ...admin, validate(v.application.reject), asyncHandler(async (req, res) => ok(res, await applicationService.reject(appId(req), req.body, req))));
+appRouter.delete('/:id', ...admin, asyncHandler(async (req, res) => ok(res, await deleteService.deleteApplication(appId(req), req))));
 
 const api = express.Router();
 api.use('/auth', authRouter);

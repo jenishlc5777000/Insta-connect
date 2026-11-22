@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Check, X, Instagram, UserPlus, KeyRound } from 'lucide-react';
-import { Button, Card, CopyButton, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea, Badge } from '../../components/ui';
+import { Check, X, Instagram, UserPlus, KeyRound, Trash2 } from 'lucide-react';
+import { Button, Card, CopyButton, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea, Badge, useConfirm } from '../../components/ui';
 import { FilterSelect, statusOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
-import { get, post, errorMessage } from '../../services/api';
+import { get, post, del, errorMessage } from '../../services/api';
 import { formatDate, formatNumber } from '../../utils/format';
 import { viewRangeLabel } from '../../utils/audience';
 
@@ -95,6 +95,27 @@ export default function Applications() {
   const [approving, setApproving] = useState(null);
   const [rejecting, setRejecting] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const { ask, dialog } = useConfirm();
+
+  const removeApplication = (app) =>
+    ask({
+      title: `Delete ${app.name}'s application?`,
+      message: app.influencerId
+        ? 'Only the application record is deleted. Their influencer account stays active (delete it from Influencers if needed).'
+        : 'This permanently removes the application. They can apply again later.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          await del(`/influencer-applications/${app._id}`);
+          toast.success('Application deleted');
+          reload();
+        } catch (err) {
+          toast.error(errorMessage(err));
+          throw err;
+        }
+      },
+    });
 
   const columns = [
     { key: 'name', header: 'Applicant', sortable: true, render: (r) => <button type="button" onClick={() => setViewing(r)} className="text-left"><p className="font-medium text-navy hover:text-brand">{r.name}</p><p className="text-xs text-slate-400">{r.email} · {r.phone}</p></button> },
@@ -111,12 +132,19 @@ export default function Applications() {
     { key: 'sub', header: 'Wants', render: (r) => (r.preferredSubdomain ? <span className="font-mono text-xs">{r.preferredSubdomain}</span> : <span className="text-slate-400">—</span>) },
     { key: 'createdAt', header: 'Applied', sortable: true, render: (r) => formatDate(r.createdAt) },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status === 'approved' ? 'approved' : r.status === 'rejected' ? 'rejected' : 'pending'} /> },
-    { key: 'actions', header: '', render: (r) => (r.status === 'pending' ? (
-      <div className="flex justify-end gap-1">
-        <Button size="sm" icon={Check} onClick={() => setApproving(r)}>Approve</Button>
-        <Button size="sm" variant="ghost" icon={X} onClick={() => setRejecting(r)} aria-label="Reject" title="Reject" />
+    { key: 'actions', header: '', render: (r) => (
+      <div className="flex items-center justify-end gap-1">
+        {r.status === 'pending' ? (
+          <>
+            <Button size="sm" icon={Check} onClick={() => setApproving(r)}>Approve</Button>
+            <Button size="sm" variant="ghost" icon={X} onClick={() => setRejecting(r)} aria-label="Reject" title="Reject" />
+          </>
+        ) : r.influencerId ? (
+          <Link to={`/admin/influencers/${r.influencerId}`} className="mr-1 text-sm font-medium text-brand">View influencer</Link>
+        ) : null}
+        <Button size="sm" variant="ghost" icon={Trash2} onClick={() => removeApplication(r)} aria-label="Delete" title="Delete application" className="hover:!text-rose-600" />
       </div>
-    ) : r.influencerId ? <Link to={`/admin/influencers/${r.influencerId}`} className="text-sm font-medium text-brand">View influencer</Link> : null) },
+    ) },
   ];
 
   return (
@@ -162,6 +190,7 @@ export default function Applications() {
       )}
       {approving && <ApproveModal key={approving._id} app={approving} onClose={() => setApproving(null)} onDone={reload} />}
       {rejecting && <RejectModal key={rejecting._id} app={rejecting} onClose={() => setRejecting(null)} onDone={reload} />}
+      {dialog}
     </>
   );
 }

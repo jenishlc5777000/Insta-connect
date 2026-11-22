@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
-  ArrowLeft, Pencil, KeyRound, MousePointerClick, Users, BadgeCheck, IndianRupee, Wallet, CheckCircle2, Percent, ClipboardCheck, Undo2, Instagram,
+  ArrowLeft, Pencil, KeyRound, Trash2, MousePointerClick, Users, BadgeCheck, IndianRupee, Wallet, CheckCircle2, Percent, ClipboardCheck, Undo2, Instagram,
 } from 'lucide-react';
 import { Button, Card, CopyButton, DataTable, EmptyState, ErrorState, Modal, Pagination, SearchInput, Skeleton, StatusBadge, Tabs, useConfirm } from '../../components/ui';
 import { SourcesChart } from '../../dashboards/Charts';
@@ -12,7 +12,7 @@ import LeadDetail from './LeadDetail';
 import CommissionRateEditor from './CommissionRateEditor';
 import { ExportButtons, FilterSelect, statusOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
-import { post, errorMessage } from '../../services/api';
+import { post, del, errorMessage } from '../../services/api';
 import { formatDate, formatDateTime, formatINR, formatNumber, titleCase } from '../../utils/format';
 import { viewRangeLabel } from '../../utils/audience';
 
@@ -32,6 +32,7 @@ export default function InfluencerDetail() {
   const [tempPassword, setTempPassword] = useState(null);
   const [leadId, setLeadId] = useState(null);
   const { ask, dialog } = useConfirm();
+  const navigate = useNavigate();
   useDocumentTitle(inf.data?.user?.name || 'Influencer');
 
   if (inf.error) return <div className="card"><ErrorState message={inf.error} onRetry={inf.reload} /></div>;
@@ -39,6 +40,24 @@ export default function InfluencerDetail() {
   const d = inf.data;
   const s = perf.data?.summary;
   const pd = d.payoutDetails || {};
+
+  const removeInfluencer = () =>
+    ask({
+      title: `Delete ${d.user?.name}?`,
+      message: `This permanently deletes the account (${d.influencerCode}), login and referral link. Past leads stay, marked as direct. If they earned commission, deleting is blocked. Deactivate them instead.`,
+      confirmLabel: 'Delete influencer',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          await del(`/influencers/${id}`);
+          toast.success(`${d.user?.name} deleted`);
+          navigate('/admin/influencers', { replace: true });
+        } catch (err) {
+          toast.error(errorMessage(err), { duration: 7000 });
+          throw err;
+        }
+      },
+    });
 
   const resetPassword = () =>
     ask({
@@ -86,6 +105,7 @@ export default function InfluencerDetail() {
           </div>
           <ExportButtons url="/reports/leads" params={{ influencerId: id }} name={`leads-${d.influencerCode}`} />
           <Button variant="secondary" icon={KeyRound} onClick={resetPassword}>Reset password</Button>
+          <Button variant="secondary" icon={Trash2} onClick={removeInfluencer} className="hover:!border-rose-200 hover:!text-rose-600">Delete</Button>
           <Button icon={Pencil} onClick={() => setEditOpen(true)}>Edit</Button>
         </div>
       </div>

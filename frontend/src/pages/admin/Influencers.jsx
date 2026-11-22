@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Power, Users, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Power, Users, ExternalLink, Trash2 } from 'lucide-react';
 import { Button, Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, StatusBadge, useConfirm } from '../../components/ui';
 import InfluencerForm from './InfluencerForm';
 import CommissionRateEditor from './CommissionRateEditor';
 import { FilterSelect, ExportButtons, statusOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
-import { patch, errorMessage } from '../../services/api';
+import { patch, del, errorMessage } from '../../services/api';
 import { formatINR, formatNumber } from '../../utils/format';
 
 export default function Influencers() {
@@ -24,6 +24,24 @@ export default function Influencers() {
       setParams({}, { replace: true });
     }
   }, [params, setParams]);
+
+  const removeInfluencer = (inf) =>
+    ask({
+      title: `Delete ${inf.user?.name}?`,
+      message: `This permanently deletes ${inf.user?.name}'s account (${inf.influencerCode}), login and referral link ${inf.subdomain}. Their past leads stay, marked as direct. Influencers who earned commission cannot be deleted. Deactivate them instead.`,
+      confirmLabel: 'Delete influencer',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          await del(`/influencers/${inf._id}`);
+          toast.success(`${inf.user?.name} deleted`);
+          reload();
+        } catch (err) {
+          toast.error(errorMessage(err), { duration: 7000 });
+          throw err;
+        }
+      },
+    });
 
   const toggleStatus = (inf) => {
     const next = inf.status === 'active' ? 'inactive' : 'active';
@@ -64,6 +82,7 @@ export default function Influencers() {
       <div className="flex justify-end gap-1">
         <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setForm({ open: true, influencer: r })} aria-label="Edit" />
         <Button size="sm" variant="ghost" icon={Power} onClick={() => toggleStatus(r)} aria-label="Toggle status" />
+        <Button size="sm" variant="ghost" icon={Trash2} onClick={() => removeInfluencer(r)} aria-label="Delete" title="Delete influencer" className="hover:!text-rose-600" />
       </div>
     ) },
   ];

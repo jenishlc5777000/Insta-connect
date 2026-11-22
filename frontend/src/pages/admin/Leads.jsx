@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Pencil, Shuffle, Megaphone, CheckCheck, X as XIcon, Eye } from 'lucide-react';
+import { Pencil, Shuffle, Megaphone, CheckCheck, X as XIcon, Eye, Trash2 } from 'lucide-react';
 import LeadDetail from './LeadDetail';
-import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Textarea } from '../../components/ui';
+import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Textarea, useConfirm } from '../../components/ui';
 import { ExportButtons, FilterSelect, statusOptions, useInfluencerOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { get, patch, post, errorMessage, applyFieldErrors } from '../../services/api';
@@ -98,6 +98,29 @@ export default function AdminLeads() {
 
   useEffect(() => setSelected([]), [data]);
 
+  const { ask, dialog } = useConfirm();
+
+  const removeLeads = (ids, label) =>
+    ask({
+      title: ids.length === 1 ? `Delete ${label}?` : `Delete ${ids.length} leads?`,
+      message: 'This permanently removes the registration and any unpaid order. Leads with a successful payment are kept. Refund them first if you need to remove them.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await post('/leads/delete', { leadIds: ids });
+          const { deleted, blocked } = res.data;
+          if (deleted) toast.success(`${deleted} lead${deleted > 1 ? 's' : ''} deleted`);
+          if (blocked.length) toast.error(blocked.length === 1 ? `Not deleted: ${blocked[0].reason}` : `${blocked.length} not deleted (successful payments must be refunded first)`, { duration: 6000 });
+          setSelected([]);
+          reload();
+        } catch (err) {
+          toast.error(errorMessage(err));
+          throw err;
+        }
+      },
+    });
+
   const bulkAttendance = async (attendanceStatus) => {
     try {
       const res = await post('/leads/attendance/bulk', { leadIds: selected, attendanceStatus });
@@ -121,6 +144,7 @@ export default function AdminLeads() {
         <Button size="sm" variant="ghost" icon={Eye} onClick={() => setViewing(r._id)} aria-label="View details" title="View all details" />
         <Button size="sm" variant="ghost" icon={Shuffle} onClick={() => setAttributing(r)} aria-label="Change attribution" title="Change attribution" />
         <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setEditing(r)} aria-label="Edit" />
+        <Button size="sm" variant="ghost" icon={Trash2} onClick={() => removeLeads([r._id], r.name)} aria-label="Delete" title="Delete lead" className="hover:!text-rose-600" />
       </div>
     ) },
   ];
@@ -143,6 +167,7 @@ export default function AdminLeads() {
             <span className="font-medium text-navy">{selected.length} selected</span>
             <Button size="sm" variant="secondary" icon={CheckCheck} onClick={() => bulkAttendance('attended')}>Mark attended</Button>
             <Button size="sm" variant="secondary" icon={XIcon} onClick={() => bulkAttendance('absent')}>Mark absent</Button>
+            <Button size="sm" variant="danger" icon={Trash2} onClick={() => removeLeads(selected)} className="sm:ml-auto">Delete selected</Button>
           </div>
         )}
         <DataTable
@@ -163,6 +188,7 @@ export default function AdminLeads() {
       <EditLeadModal lead={editing} onClose={() => setEditing(null)} onSaved={reload} />
       <LeadDetail leadId={viewing} onClose={() => setViewing(null)} />
       <AttributionModal lead={attributing} influencers={influencers} onClose={() => setAttributing(null)} onSaved={reload} />
+      {dialog}
     </>
   );
 }

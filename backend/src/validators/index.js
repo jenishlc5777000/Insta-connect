@@ -217,6 +217,7 @@ const lead = {
     leadIds: z.array(objectId).min(1).max(500),
     attendanceStatus: z.enum(ATTENDANCE_STATUS),
   }),
+  bulkDelete: z.object({ leadIds: z.array(objectId).min(1).max(500) }),
 };
 
 /* -------------------------------- Referrals ------------------------------- */
