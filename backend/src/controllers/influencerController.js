@@ -133,7 +133,7 @@ exports.myPayouts = asyncHandler(async (req, res) => {
 
 exports.myReferralLinks = asyncHandler(async (req, res) => {
   const inf = req.influencer;
-  const baseUrl = influencerService.referralUrlFor(inf.subdomain);
+  const baseUrl = influencerService.referralUrlFor(inf.subdomain, inf.influencerCode);
   const workshops = await Workshop.find({ status: 'published', endDate: { $gte: new Date() } }).sort('startDate').lean({ virtuals: true });
   const ids = workshops.map((w) => w._id);
   const oid = new mongoose.Types.ObjectId(String(inf._id));
@@ -148,7 +148,7 @@ exports.myReferralLinks = asyncHandler(async (req, res) => {
   const cm = new Map(clicks.map((c) => [String(c._id), c.n]));
   const lm = new Map(leads.map((l) => [String(l._id), l]));
   const campaignLink = (w, source, medium) =>
-    `${baseUrl}/workshops/${w.slug}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${encodeURIComponent(w.campaignCode)}`;
+    influencerService.referralUrlFor(inf.subdomain, inf.influencerCode, `/workshops/${w.slug}`, { utm_source: source, utm_medium: medium, utm_campaign: w.campaignCode });
   ok(res, {
     subdomain: `${inf.subdomain}`,
     referralUrl: baseUrl,
@@ -161,7 +161,7 @@ exports.myReferralLinks = asyncHandler(async (req, res) => {
       startDate: w.startDate,
       campaignCode: w.campaignCode,
       links: {
-        default: `${baseUrl}/workshops/${w.slug}`,
+        default: influencerService.referralUrlFor(inf.subdomain, inf.influencerCode, `/workshops/${w.slug}`),
         instagram: campaignLink(w, 'instagram', 'social'),
         whatsapp: campaignLink(w, 'whatsapp', 'messaging'),
         facebook: campaignLink(w, 'facebook', 'social'),

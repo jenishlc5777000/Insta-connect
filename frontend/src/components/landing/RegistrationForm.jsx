@@ -101,7 +101,7 @@ export default function RegistrationForm({ workshops = [], defaultWorkshopId, co
           {selected?.mode === 'hybrid' ? (
             <Select {...register('mode')} options={[{ value: 'online', label: 'Online (live)' }, { value: 'offline', label: 'Offline (in person)' }]} placeholder="Choose mode" />
           ) : (
-            <Input value={selected ? titleCase(selected.mode) : ''} readOnly disabled />
+            <Input value={selected ? (selected.mode === 'online' ? 'Online (live)' : 'Offline (in person)') : ''} readOnly disabled />
           )}
         </Field>
         <Field label="How did you hear about us?">

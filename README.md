@@ -163,6 +163,46 @@ There is **one deployment for every influencer**. Nginx sends `jencorps.com` and
 
 **Other hosts**: the frontend is a static SPA, so it can run on Vercel, Netlify or Cloudflare Pages with a wildcard domain and an SPA fallback. The API can run on Render, Railway, Fly.io or a VM. Make sure `/api/*` is **proxied (rewritten)** to the API on the same host, not called cross-origin, and that the proxy forwards `X-Forwarded-Host`.
 
+## 6b. Deploy to Vercel (website + API in one project)
+
+The repo is ready for Vercel. `vercel.json` builds the React app, and `api/index.js` runs the whole Express API as one serverless function at `/api/*`, on the same domain, so cookies keep working.
+
+1. **Create a database** at [MongoDB Atlas](https://www.mongodb.com/atlas) (the free M0 tier works):
+   - Add a database user.
+   - Under **Network Access**, allow `0.0.0.0/0`. Vercel's IPs change, so they can't be allow-listed.
+   - Copy the connection string.
+2. **Create a Cloudinary account** (free) for uploads such as banners, avatars and promo kits. Vercel can't store files.
+3. In Vercel, go to **Add New → Project → Import** `jenishlc5777000/Insta-connect`. Keep the detected settings: the root directory is the repo root, and the build settings come from `vercel.json`.
+4. Under **Environment Variables**, add:
+
+   | Variable | Value |
+   |---|---|
+   | `MONGODB_URI` | your Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/jencorps` |
+   | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `COOKIE_SECRET`, `DATA_ENCRYPTION_KEY` | four **different** long random strings; generate each with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
+   | `FRONTEND_URL` | `https://<your-project>.vercel.app` (later `https://jencorps.com`) |
+   | `BASE_DOMAIN` | `<your-project>.vercel.app` (later `jencorps.com`) |
+   | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | from the Cloudinary dashboard |
+   | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | from Razorpay (test keys first) |
+   | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | your email provider (optional at first) |
+
+5. Click **Deploy**.
+6. **Create the first admin** from your computer, pointing at the Atlas database:
+   ```bash
+   cd backend
+   MONGODB_URI="<atlas uri>" NODE_ENV=production JWT_ACCESS_SECRET=x JWT_REFRESH_SECRET=x DATA_ENCRYPTION_KEY="<same DATA_ENCRYPTION_KEY as Vercel>" \
+     node scripts/createAdmin.js --email you@company.com --name "Your Name"
+   ```
+   In Windows PowerShell, set each variable first with `$env:MONGODB_URI="..."` and so on, then run `node scripts/createAdmin.js ...`.
+7. Set the Razorpay webhook URL to `https://<your-domain>/api/v1/payments/webhook`.
+
+Every push to `main` redeploys automatically, and pull requests get preview URLs.
+
+**Referral links on `*.vercel.app`:** Vercel doesn't allow `arun.<project>.vercel.app` subdomains. While `BASE_DOMAIN` ends in `.vercel.app`, influencer links therefore use `?ref=INF-1001` (for example `https://<project>.vercel.app/?ref=INF-1001`), with the same tracking, cookie and commission. To use real subdomains:
+- In **Vercel → Settings → Domains**, add both `jencorps.com` and `*.jencorps.com`. Wildcard domains require Vercel's nameservers.
+- Set `FRONTEND_URL=https://jencorps.com` and `BASE_DOMAIN=jencorps.com`, then redeploy.
+
+Links then switch to `https://arun.jencorps.com` automatically. You can also force either style with `REFERRAL_LINK_MODE=subdomain` or `query`.
+
 ## 7. Wildcard DNS and SSL
 
 **DNS** (at your registrar or Cloudflare):

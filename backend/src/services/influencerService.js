@@ -10,11 +10,22 @@ const emailService = require('./emailService');
 const { revokeAllForUser } = require('./tokenService');
 const { getSettings, reservedSubdomains } = require('./settingsService');
 
-/** "https://jencorps.com" + "arun" -> "https://arun.jencorps.com" (keeps the dev port) */
-function referralUrlFor(subdomain) {
+/**
+ * Builds an influencer's referral link.
+ *  subdomain mode: https://arun.jencorps.com/workshops/x?utm_source=...
+ *  query mode:     https://jencorps.com/workshops/x?ref=INF-1001&utm_source=...
+ */
+function referralUrlFor(subdomain, code, path = '/', params = {}) {
   const url = new URL(env.frontendUrl);
-  url.hostname = `${subdomain}.${url.hostname}`;
-  return url.origin;
+  const query = new URLSearchParams();
+  if (env.referralLinkMode === 'query') {
+    if (code) query.set('ref', code);
+  } else {
+    url.hostname = `${subdomain}.${url.hostname}`;
+  }
+  Object.entries(params).forEach(([k, v]) => v && query.set(k, v));
+  const qs = query.toString();
+  return `${url.origin}${path === '/' ? (qs ? '/' : '') : path}${qs ? `?${qs}` : ''}`;
 }
 
 async function nextInfluencerCode(session) {
@@ -55,7 +66,7 @@ function serialize(inf, { revealPayout = false } = {}) {
     _id: obj._id,
     influencerCode: obj.influencerCode,
     subdomain: obj.subdomain,
-    referralUrl: referralUrlFor(obj.subdomain),
+    referralUrl: referralUrlFor(obj.subdomain, obj.influencerCode),
     commissionRate: obj.commissionRate,
     instagramUsername: obj.instagramUsername,
     profileImage: obj.profileImage,
@@ -103,7 +114,7 @@ async function create(data, req) {
       email: result.user.email,
       tempPassword,
       loginUrl: `${env.frontendUrl}/influencer/login`,
-      referralUrl: referralUrlFor(result.influencer.subdomain),
+      referralUrl: referralUrlFor(result.influencer.subdomain, result.influencer.influencerCode),
     });
   }
   result.influencer.userId = result.user;

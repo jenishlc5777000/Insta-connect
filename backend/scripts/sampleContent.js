@@ -6,7 +6,7 @@ const workshop = {
   title: 'AI Video Creation Workshop',
   slug: 'ai-video-creation-workshop',
   campaignCode: 'CMP-AIVIDEO',
-  tagline: 'Script, generate, voice and edit scroll-stopping Reels & YouTube videos with AI — no camera crew needed.',
+  tagline: 'Script, generate, voice and edit scroll-stopping Instagram & YouTube videos with AI — no camera crew needed.',
   description:
     'A hands-on, beginner-friendly workshop where you go from idea to finished video using AI. Write hooks and scripts with AI, generate cinematic clips from text and images, create AI avatars and natural voiceovers, auto-edit with captions and B-roll, and publish with a strategy that grows your views. You will leave with finished videos for your own channel.',
   learnings: [
@@ -26,7 +26,7 @@ const workshop = {
   ],
   curriculum: [
     { title: 'The AI video toolkit', description: 'Which tool to use for scripts, visuals, voice and editing — and the free options.', duration: '45 min' },
-    { title: 'Hooks, scripts & storyboards', description: 'Turn one idea into a 30-second Reel and a 5-minute YouTube script with AI.', duration: '60 min' },
+    { title: 'Hooks, scripts & storyboards', description: 'Turn one idea into an Instagram Reel and a YouTube video script with AI.', duration: '60 min' },
     { title: 'Text-to-video & image-to-video', description: 'Prompting for cinematic shots, consistent characters and B-roll.', duration: '75 min' },
     { title: 'AI avatars & voiceovers', description: 'Talking-head avatars, voice cloning and multilingual dubbing.', duration: '60 min' },
     { title: 'Editing, captions & thumbnails', description: 'Auto-edit, captions, music and thumbnails that get clicks.', duration: '60 min' },
@@ -37,7 +37,7 @@ const workshop = {
     { question: 'Which tools will we use? Are they free?', answer: 'We use a mix of free and freemium AI tools for scripts, video generation, voice and editing. You can complete every exercise on free plans.' },
     { question: 'Can I make videos in Indian languages?', answer: 'Yes — we cover AI voiceovers and dubbing in Hindi, Tamil, Malayalam, Telugu, Kannada and more.' },
     { question: 'Will I get the recording?', answer: 'Yes, every paid participant gets lifetime access to the recording and the prompt pack.' },
-    { question: 'Can I attend online?', answer: 'Yes. Choose Online during registration and you will receive the live session link after payment.' },
+    { question: 'Is the workshop online or in person?', answer: 'It is a live online workshop, so you can join from anywhere on your laptop or phone. You will receive the live session link right after payment.' },
   ],
   trainer: {
     name: 'Dev Trainer',
@@ -51,12 +51,12 @@ const resources = [
     title: 'Instagram caption pack',
     type: 'caption',
     textContent:
-      '🎬 No camera? No editor? No problem.\nLearn to create viral Reels & YouTube videos with AI — scripts, AI avatars, voiceovers and auto-editing — at the JenCorps AI Video Creation Workshop.\nLimited seats. Link in bio 👇',
+      '🎬 No camera? No editor? No problem.\nLearn to create viral Instagram & YouTube videos with AI — scripts, AI avatars, voiceovers and auto-editing — at the JenCorps AI Video Creation Workshop.\nLimited seats. Link in bio 👇',
   },
   {
     title: 'Hashtag set',
     type: 'hashtags',
-    textContent: '#AIVideo #AIVideoCreation #ReelsTips #ContentCreator #AIAvatar #TextToVideo #VideoEditing #YouTubeGrowth #JenCorps #CreatorEconomy',
+    textContent: '#AIVideo #AIVideoCreation #InstagramReels #ReelsTips #ContentCreator #AIAvatar #TextToVideo #VideoEditing #YouTubeGrowth #JenCorps #CreatorEconomy',
   },
   {
     title: '30-second reel script',

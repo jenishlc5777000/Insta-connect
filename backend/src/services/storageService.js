@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { v2: cloudinary } = require('cloudinary');
 const env = require('../config/env');
+const ApiError = require('../utils/ApiError');
 
 const useCloudinary = Boolean(env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret);
 
@@ -45,6 +46,9 @@ async function uploadFile(file, folder = 'misc') {
     return { url: result.secure_url, publicId: `cloudinary:${result.resource_type}:${result.public_id}`, provider: 'cloudinary' };
   }
 
+  if (env.isServerless) {
+    throw new ApiError(503, 'File uploads need Cloudinary when hosted on Vercel. Add the CLOUDINARY_* environment variables.', undefined, 'STORAGE_NOT_CONFIGURED');
+  }
   const safeFolder = folder.replace(/[^a-z0-9-]/gi, '');
   const dir = path.join(env.uploadDir, safeFolder);
   await fs.mkdir(dir, { recursive: true });

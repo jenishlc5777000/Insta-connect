@@ -27,7 +27,7 @@ export default function ReferralLinks() {
   if (error) return <div className="card"><ErrorState message={error} onRetry={reload} /></div>;
   if (loading || !data) return <div className="space-y-4"><Skeleton className="h-48 rounded-2xl" /><Skeleton className="h-64 rounded-2xl" /></div>;
 
-  const shareText = 'Join me at the JenCorps AI Video Creation Workshop! 🎬 Learn to create viral Reels & YouTube videos with AI.';
+  const shareText = 'Join me at the JenCorps AI Video Creation Workshop! 🎬 Learn to create viral Instagram & YouTube videos with AI.';
 
   // Instagram has no web share URL: use the native share sheet on mobile, else copy + open Instagram
   const shareInstagram = async (url) => {

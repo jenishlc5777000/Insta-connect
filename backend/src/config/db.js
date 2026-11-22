@@ -3,6 +3,20 @@ const logger = require('../utils/logger');
 
 const dbState = { supportsTransactions: false };
 
+let connecting = null;
+
+/** Idempotent: serverless invocations share one connection per warm instance */
+function ensureConnected(uri) {
+  if (mongoose.connection.readyState === 1) return Promise.resolve(mongoose.connection);
+  if (!connecting) {
+    connecting = connectDB(uri, { serverSelectionTimeoutMS: 10000, maxPoolSize: 10 }).catch((err) => {
+      connecting = null;
+      throw err;
+    });
+  }
+  return connecting;
+}
+
 async function connectDB(uri, options = {}) {
   mongoose.set('strictQuery', true);
   await mongoose.connect(uri, options);
@@ -31,4 +45,4 @@ async function disconnectDB() {
   await mongoose.disconnect();
 }
 
-module.exports = { connectDB, disconnectDB, dbState };
+module.exports = { connectDB, ensureConnected, disconnectDB, dbState };

@@ -12,7 +12,7 @@ import { effectivePrice, firstName, formatDateRange, formatINR, formatLongDate, 
 
 const TOPICS = [
   { icon: Clapperboard, title: 'AI Video Generation', text: 'Turn text and images into cinematic clips with the latest text-to-video and image-to-video tools.', tone: 'text-brand bg-brand-50' },
-  { icon: ScrollText, title: 'AI Scripts & Storyboards', text: 'Scroll-stopping hooks, scripts and shot lists for Reels and YouTube in minutes.', tone: 'text-teal bg-teal-50' },
+  { icon: ScrollText, title: 'AI Scripts & Storyboards', text: 'Scroll-stopping hooks, scripts and shot lists for Instagram and YouTube in minutes.', tone: 'text-teal bg-teal-50' },
   { icon: Mic, title: 'AI Avatars & Voiceovers', text: 'Talking-head avatars, natural voiceovers and dubbing into any language.', tone: 'text-purple bg-purple-50' },
   { icon: Scissors, title: 'Edit, Caption & Go Viral', text: 'Auto-editing, captions, thumbnails and a posting plan that grows your views.', tone: 'text-amber-600 bg-amber-50' },
 ];
@@ -65,7 +65,7 @@ function Hero({ workshop }) {
             with <span className="bg-gradient-to-r from-teal to-cyan-300 bg-clip-text text-transparent">AI</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-            {workshop?.tagline || 'Join our hands-on AI Video Creation Workshop — script, generate, voice and edit scroll-stopping videos without a camera crew.'}
+            {workshop?.tagline || 'Join our hands-on AI Video Creation Workshop — script, generate, voice and edit scroll-stopping Instagram & YouTube videos without a camera crew.'}
           </p>
 
           {workshop && (

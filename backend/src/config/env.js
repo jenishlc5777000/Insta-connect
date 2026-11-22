@@ -75,7 +75,19 @@ const env = {
   },
 
   uploadDir: path.resolve(__dirname, '../../uploads'),
+  // Serverless hosts (Vercel) have a read-only, non-persistent file system
+  isServerless: Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME),
 };
+
+// Referral links: "subdomain" (arun.jencorps.com) needs a wildcard custom domain.
+// "query" (jencorps.com/?ref=INF-1001) works anywhere, e.g. on *.vercel.app.
+env.referralLinkMode =
+  process.env.REFERRAL_LINK_MODE || (env.baseDomain.endsWith('.vercel.app') ? 'query' : 'subdomain');
+
+// Allow this deployment's own Vercel URLs (production + preview) as origins
+for (const v of [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]) {
+  if (v) env.corsOrigins.push(`https://${v}`);
+}
 
 env.cookieDomain =
   isProd && env.baseDomain !== 'localhost' ? `.${env.baseDomain}` : undefined;
