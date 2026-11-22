@@ -39,6 +39,36 @@ export default function InfluencerDashboard() {
 
   return (
     <>
+      {/* Referral link, always first: the one thing influencers need every day */}
+      <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-navy via-[#14306b] to-brand p-4 text-white shadow-lg shadow-brand/20 sm:p-5">
+        <div className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/15"><Link2 className="size-5" /></span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Your referral link</p>
+              {links.loading ? (
+                <Skeleton className="mt-1 h-6 w-64 bg-white/20" />
+              ) : (
+                <a href={referralUrl} target="_blank" rel="noreferrer" className="block truncate font-display text-lg font-bold text-white hover:underline sm:text-xl">
+                  {referralUrl.replace(/^https?:\/\//, '')}
+                </a>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <CopyButton text={referralUrl} label="Copy link" className="!border-0 !bg-white !text-navy" />
+            <button type="button" onClick={shareInstagram} disabled={!referralUrl} className="btn btn-sm bg-gradient-to-r from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white">
+              <Instagram className="size-4" /> Instagram
+            </button>
+            <a href={`https://wa.me/?text=${encodeURIComponent(`Join me at the JenCorps AI Video Creation Workshop! 🎬 ${referralUrl}`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm bg-[#25D366] text-white">
+              WhatsApp
+            </a>
+            <Link to="/influencer/referral-links" className="btn btn-sm border border-white/30 text-white hover:bg-white/10">QR & more</Link>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold sm:text-[1.7rem]">Welcome, {firstName(user?.name)}! 👋</h1>
@@ -74,16 +104,7 @@ export default function InfluencerDashboard() {
         </Card>
 
         <Card title={<span className="flex items-center gap-2"><Link2 className="size-4 text-brand" /> Quick Links</span>}>
-          <p className="mb-2 text-sm font-medium text-slate-700">Your Referral Link</p>
-          {links.loading ? (
-            <Skeleton className="h-11 w-full" />
-          ) : (
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5 pl-3">
-              <span className="min-w-0 flex-1 truncate font-mono text-sm text-slate-600">{referralUrl}</span>
-              <CopyButton text={referralUrl} label="Copy" variant="primary" />
-            </div>
-          )}
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Link to="/influencer/resources" className="flex flex-col items-start gap-2 rounded-xl border border-slate-200 p-3 text-sm font-medium text-navy transition hover:border-brand/40 hover:bg-brand-50/40">
               <span className="grid size-9 place-items-center rounded-lg bg-brand-50 text-brand"><Download className="size-4" /></span>
               Download Promo Kit

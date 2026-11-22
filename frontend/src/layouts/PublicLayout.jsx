@@ -59,7 +59,7 @@ export function Navbar({ transparent }) {
     { to: '/about', label: 'About' },
     { to: '/#benefits', label: 'Benefits' },
     { to: '/#faq', label: 'FAQs' },
-    { to: '/become-influencer', label: 'Join as Influencer', highlight: true },
+    { to: '/become-influencer', label: 'Join as Influencer' },
   ];
   const referred = Boolean(attribution?.influencer?.name);
 

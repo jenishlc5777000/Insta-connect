@@ -320,18 +320,16 @@ export default function WorkshopLanding({ workshop, workshops = [], loading }) {
         </section>
       )}
 
-      <section className="bg-white px-4 py-12 sm:px-6">
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 overflow-hidden rounded-3xl bg-[#071630] p-8 text-center text-white sm:flex-row sm:p-10 sm:text-left">
-          <div className="pointer-events-none absolute -left-10 -top-10 size-60 rounded-full bg-[#dd2a7b]/30 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-10 right-10 size-60 rounded-full bg-brand/30 blur-3xl" />
-          <span className="relative grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af]"><Instagram className="size-8" /></span>
-          <div className="relative flex-1">
-            <h2 className="text-2xl font-extrabold text-white">Are you an Instagram creator?</h2>
-            <p className="mt-1 text-slate-300">Partner with JenCorps, share our AI video workshops with your followers and earn commission on every paid registration.</p>
-          </div>
-          <Link to="/become-influencer" className="btn relative whitespace-nowrap bg-white px-6 py-3 text-navy hover:bg-slate-100">Join as Influencer <ArrowRight className="size-4" /></Link>
-        </div>
-      </section>
+      {/* Low-key creator invite */}
+      <div className="bg-white px-4 pb-10 pt-2 text-center sm:px-6">
+        <p className="text-sm text-slate-500">
+          <Instagram className="mr-1 inline size-3.5 -translate-y-px text-slate-400" />
+          Instagram creator?{' '}
+          <Link to="/become-influencer" className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand">
+            Join as influencer
+          </Link>
+        </p>
+      </div>
 
       {workshop?.faqs?.length > 0 && (
         <section id="faq" className="scroll-mt-20 bg-slate-50 px-4 py-16 sm:px-6 sm:py-20">
