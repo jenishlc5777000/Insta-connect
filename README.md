@@ -150,7 +150,7 @@ sudo npm i -g pm2
 git clone <your repo> /var/www/jencorps && cd /var/www/jencorps
 npm ci
 cp .env.example backend/.env && nano backend/.env     # production values
-npm run build                                          # -> frontend/dist
+npm run build                                          # -> dist
 npm run create-admin -- --email admin@jencorps.com
 
 pm2 start deploy/ecosystem.config.js && pm2 save && pm2 startup

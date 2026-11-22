@@ -16,6 +16,9 @@ export default defineConfig({
     },
   },
   build: {
+    // Output to <repo>/dist so Vercel (Root Directory = repo root) finds it as "dist"
+    outDir: '../dist',
+    emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
       output: {
