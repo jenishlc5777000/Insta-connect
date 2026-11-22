@@ -21,7 +21,9 @@ function referralUrlFor(subdomain, code, path = '/', params = {}) {
   if (env.referralLinkMode === 'query') {
     if (code) query.set('ref', code);
   } else {
-    url.hostname = `${subdomain}.${url.hostname}`;
+    // Always hang subdomains off the bare domain: www.jencorps.com -> arun.jencorps.com (never arun.www.…)
+    const host = url.hostname === env.baseDomain || url.hostname.endsWith(`.${env.baseDomain}`) ? env.baseDomain : url.hostname.replace(/^www\./, '');
+    url.hostname = `${subdomain}.${host}`;
   }
   Object.entries(params).forEach(([k, v]) => v && query.set(k, v));
   const qs = query.toString();

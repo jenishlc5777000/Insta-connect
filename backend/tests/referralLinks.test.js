@@ -15,6 +15,18 @@ describe('Referral link builder', () => {
     expect(referralUrlFor('arun', 'INF-1001', '/workshops/ai-video', { utm_source: 'instagram' })).toBe('https://arun.jencorps.com/workshops/ai-video?utm_source=instagram');
   });
 
+  it('uses the bare domain when the site lives on www', () => {
+    env.referralLinkMode = 'subdomain';
+    env.frontendUrl = 'https://www.jencorps.com';
+    const base = env.baseDomain;
+    env.baseDomain = 'jencorps.com';
+    try {
+      expect(referralUrlFor('arun', 'INF-1001')).toBe('https://arun.jencorps.com');
+    } finally {
+      env.baseDomain = base;
+    }
+  });
+
   it('builds ?ref= links when subdomains are unavailable (e.g. *.vercel.app)', () => {
     env.referralLinkMode = 'query';
     env.frontendUrl = 'https://insta-connect.vercel.app';
