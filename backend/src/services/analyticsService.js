@@ -29,6 +29,14 @@ async function summary(scope = {}) {
           leads: { $sum: 1 },
           registrations: { $sum: { $cond: [{ $ne: ['$registrationStatus', 'cancelled'] }, 1, 0] } },
           paid: { $sum: { $cond: [{ $in: ['$paymentStatus', ['paid', 'partially_refunded']] }, 1, 0] } },
+          // Successful = seat confirmed (paid, or free workshop); pending = signed up but not paid yet
+          successful: {
+            $sum: { $cond: [{ $and: [{ $ne: ['$registrationStatus', 'cancelled'] }, { $in: ['$paymentStatus', ['paid', 'partially_refunded', 'not_required']] }] }, 1, 0] },
+          },
+          pendingPayment: {
+            $sum: { $cond: [{ $and: [{ $ne: ['$registrationStatus', 'cancelled'] }, { $in: ['$paymentStatus', ['pending', 'failed']] }] }, 1, 0] },
+          },
+          cancelled: { $sum: { $cond: [{ $eq: ['$registrationStatus', 'cancelled'] }, 1, 0] } },
           attended: { $sum: { $cond: [{ $eq: ['$attendanceStatus', 'attended'] }, 1, 0] } },
         },
       },
@@ -43,7 +51,7 @@ async function summary(scope = {}) {
     ]),
   ]);
 
-  const l = leadAgg[0] || { leads: 0, registrations: 0, paid: 0, attended: 0 };
+  const l = leadAgg[0] || { leads: 0, registrations: 0, paid: 0, successful: 0, pendingPayment: 0, cancelled: 0, attended: 0 };
   const p = payAgg[0] || { gross: 0, refunded: 0 };
   const c = Object.fromEntries(comAgg.map((r) => [r._id, r]));
   const amt = (s) => c[s]?.amount || 0;
@@ -53,6 +61,9 @@ async function summary(scope = {}) {
     leads: l.leads,
     registrations: l.registrations,
     paidRegistrations: l.paid,
+    successfulRegistrations: l.successful,
+    pendingPaymentRegistrations: l.pendingPayment,
+    cancelledRegistrations: l.cancelled,
     attended: l.attended,
     conversionRate: l.leads ? Number(((l.paid / l.leads) * 100).toFixed(1)) : 0,
     clickToLeadRate: clicks ? Number(((l.leads / clicks) * 100).toFixed(1)) : 0,
@@ -244,6 +255,8 @@ async function trends(scope = {}, days = 30) {
     leads: pct(a.leads, b.leads),
     registrations: pct(a.registrations, b.registrations),
     paid: pct(a.paidRegistrations, b.paidRegistrations),
+    successful: pct(a.successfulRegistrations, b.successfulRegistrations),
+    pendingPayment: pct(a.pendingPaymentRegistrations, b.pendingPaymentRegistrations),
     revenue: pct(a.revenue, b.revenue),
     earnings: pct(a.commission.total, b.commission.total),
     payable: pct(a.commission.payable, b.commission.payable),
@@ -264,7 +277,7 @@ async function commissionThisMonth(influencerId) {
 /** Share of registrations per influencer (top N + Others + Direct) for the donut chart */
 async function registrationsByInfluencer(scope = {}, top = 4) {
   const rows = await Lead.aggregate([
-    { $match: { ...baseMatch({ workshopId: scope.workshopId, from: scope.from, to: scope.to }), registrationStatus: { $ne: 'cancelled' } } },
+    { $match: { ...baseMatch({ workshopId: scope.workshopId, from: scope.from, to: scope.to }), registrationStatus: { $ne: 'cancelled' }, paymentStatus: { $in: ['paid', 'partially_refunded', 'not_required'] } } },
     { $group: { _id: '$influencerId', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
   ]);

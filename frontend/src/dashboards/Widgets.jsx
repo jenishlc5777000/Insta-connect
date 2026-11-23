@@ -1,5 +1,6 @@
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import { ArrowDownRight, ArrowUpRight, BarChart3, Minus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cx, EmptyState, Skeleton } from '../components/ui';
 import { formatNumber } from '../utils/format';
 
@@ -30,10 +31,12 @@ export function TrendBadge({ value, period = '30d' }) {
   );
 }
 
-export function TrendCard({ label, value, sub, icon: Icon, tint = 'blue', trend, loading, period }) {
+/** `to` makes the card a link (e.g. to a filtered leads list); `hint` is a small caption under the value */
+export function TrendCard({ label, value, sub, icon: Icon, tint = 'blue', trend, loading, period, to, hint }) {
   const t = TINTS[tint];
+  const Wrapper = to ? Link : 'div';
   return (
-    <div className={cx('rounded-2xl border p-4 sm:p-5', t.card)}>
+    <Wrapper to={to} className={cx('block rounded-2xl border p-4 sm:p-5', t.card, to && 'transition hover:-translate-y-0.5 hover:shadow-md')}>
       <div className="flex items-start justify-between gap-2">
         <span className={cx('grid size-10 place-items-center rounded-xl shadow-lg', t.icon)}>
           <Icon className="size-5" />
@@ -49,7 +52,8 @@ export function TrendCard({ label, value, sub, icon: Icon, tint = 'blue', trend,
           {sub && <span className="text-xs font-medium text-slate-500">{sub}</span>}
         </p>
       )}
-    </div>
+      {hint && !loading && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+    </Wrapper>
   );
 }
 

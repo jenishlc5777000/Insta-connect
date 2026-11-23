@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, ClipboardCheck, IndianRupee, Scale, CreditCard, UserPlus, BadgeCheck, Plus } from 'lucide-react';
+import { Users, ClipboardCheck, IndianRupee, Scale, CreditCard, UserPlus, BadgeCheck, Plus, Clock } from 'lucide-react';
 import { Card, DataTable, EmptyState, ErrorState, Select, StatusBadge } from '../../components/ui';
 import { SourcesChart } from '../../dashboards/Charts';
 import { MiniStat, PerformanceLegend, PerformanceOverview, RegistrationsDonut, TrendCard } from '../../dashboards/Widgets';
@@ -50,8 +50,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <TrendCard label="Active Influencers" value={formatNumber(s?.activeInfluencers)} sub={s ? `of ${s.totalInfluencers}` : undefined} icon={Users} tint="blue" loading={loading} />
-        <TrendCard label="Total Registrations" value={formatNumber(s?.registrations)} icon={ClipboardCheck} tint="indigo" trend={t?.registrations} period={period} loading={loading} />
+        <TrendCard label="Successful Registrations" value={formatNumber(s?.successfulRegistrations)} icon={BadgeCheck} tint="green" trend={t?.successful} period={period} loading={loading} hint="Paid · seat confirmed" to="/admin/leads?paymentStatus=paid" />
+        <TrendCard label="Pending Payment" value={formatNumber(s?.pendingPaymentRegistrations)} icon={Clock} tint="amber" loading={loading} hint="Signed up, not paid yet" to="/admin/leads?paymentStatus=pending" />
         <TrendCard label="Total Revenue" value={formatINR(s?.revenue)} icon={IndianRupee} tint="green" trend={t?.revenue} period={period} loading={loading} />
         <TrendCard label="Commission Payable" value={formatINR(s?.commission.payable)} icon={Scale} tint="purple" trend={t?.payable} period={period} loading={loading} />
       </div>
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <MiniStat label="Referral clicks" value={formatNumber(s?.clicks)} loading={loading} />
         <MiniStat label="Total leads" value={formatNumber(s?.leads)} loading={loading} />
-        <MiniStat label="Paid registrations" value={`${formatNumber(s?.paidRegistrations)} (${s?.conversionRate ?? 0}%)`} loading={loading} />
+        <MiniStat label="Active influencers" value={`${formatNumber(s?.activeInfluencers)} of ${formatNumber(s?.totalInfluencers)}`} loading={loading} />
         <MiniStat label="Commission paid" value={formatINR(s?.commission.paid)} loading={loading} />
         <MiniStat label="Upcoming workshops" value={formatNumber(s?.upcomingWorkshops)} loading={loading} />
       </div>

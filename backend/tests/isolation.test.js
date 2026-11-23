@@ -85,13 +85,30 @@ describe('Influencer data isolation & admin authorization', () => {
     expect(scoped.body.data.summary.leads).toBe(1);
   });
 
-  it('splits registrations by influencer for the admin donut', async () => {
-    const res = await admin.get('/api/v1/analytics/admin/overview');
-    expect(res.status).toBe(200);
+  it('separates successful (paid) registrations from pending-payment ones', async () => {
+    // both leads start unpaid
+    let res = await admin.get('/api/v1/analytics/admin/overview');
+    expect(res.body.data.summary.successfulRegistrations).toBe(0);
+    expect(res.body.data.summary.pendingPaymentRegistrations).toBe(2);
+    expect(res.body.data.byInfluencer.total).toBe(0); // donut counts successful only
+
+    // Arun's lead pays
+    await h.models.Lead.updateOne({ _id: arunLeadId }, { paymentStatus: 'paid', registrationStatus: 'confirmed' });
+    res = await admin.get('/api/v1/analytics/admin/overview');
+    expect(res.body.data.summary.successfulRegistrations).toBe(1);
+    expect(res.body.data.summary.pendingPaymentRegistrations).toBe(1);
     const { total, items } = res.body.data.byInfluencer;
-    expect(total).toBe(2);
+    expect(total).toBe(1);
     expect(items.map((i) => i.share).reduce((a, b) => a + b, 0)).toBeCloseTo(100);
-    expect(res.body.data.trends).toHaveProperty('revenue');
+    expect(res.body.data.trends).toHaveProperty('successful');
+
+    // each influencer only sees their own split
+    const a = (await arun.agent.get('/api/v1/influencers/me/summary')).body.data.summary;
+    const p = (await priya.agent.get('/api/v1/influencers/me/summary')).body.data.summary;
+    expect([a.successfulRegistrations, a.pendingPaymentRegistrations]).toEqual([1, 0]);
+    expect([p.successfulRegistrations, p.pendingPaymentRegistrations]).toEqual([0, 1]);
+
+    await h.models.Lead.updateOne({ _id: arunLeadId }, { paymentStatus: 'pending', registrationStatus: 'registered' });
   });
 
   it('requires authentication and the admin role', async () => {

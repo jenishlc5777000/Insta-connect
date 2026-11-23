@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MousePointerClick, Users, BadgeCheck, IndianRupee, Link2, Download, Instagram, Trophy, ArrowRight } from 'lucide-react';
+import { MousePointerClick, Users, BadgeCheck, Clock, IndianRupee, Link2, Download, Instagram, Trophy, ArrowRight } from 'lucide-react';
 import { Card, CopyButton, EmptyState, ErrorState, Select, Skeleton, StatusBadge } from '../../components/ui';
 import { MiniStat, PerformanceLegend, PerformanceOverview, TrendCard } from '../../dashboards/Widgets';
 import { useAuth } from '../../context/AuthContext';
@@ -85,8 +85,8 @@ export default function InfluencerDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <TrendCard label="Total Clicks" value={formatNumber(s?.clicks)} icon={MousePointerClick} tint="blue" trend={t?.clicks} loading={loading} />
-        <TrendCard label="Registrations" value={formatNumber(s?.registrations)} icon={Users} tint="indigo" trend={t?.registrations} loading={loading} />
-        <TrendCard label="Paid Registrations" value={formatNumber(s?.paidRegistrations)} icon={BadgeCheck} tint="green" trend={t?.paid} loading={loading} />
+        <TrendCard label="Successful Registrations" value={formatNumber(s?.successfulRegistrations)} icon={BadgeCheck} tint="green" trend={t?.successful} loading={loading} hint="Paid · seat confirmed" to="/influencer/leads?paymentStatus=paid" />
+        <TrendCard label="Pending Payment" value={formatNumber(s?.pendingPaymentRegistrations)} icon={Clock} tint="amber" loading={loading} hint="Signed up, not paid yet" to="/influencer/leads?paymentStatus=pending" />
         <TrendCard label="Your Earnings" value={formatINR(s?.commission.total)} sub={data ? `(${data.commissionRate}% Share)` : undefined} icon={IndianRupee} tint="purple" trend={t?.earnings} loading={loading} />
       </div>
 

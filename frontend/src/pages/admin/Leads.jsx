@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -87,7 +88,8 @@ function AttributionModal({ lead, influencers, onClose, onSaved }) {
 
 export default function AdminLeads() {
   useDocumentTitle('Leads');
-  const q = useListQuery({ filters: { influencerId: '', workshopId: '', paymentStatus: '', attendanceStatus: '', from: '', to: '' } });
+  const [params] = useSearchParams();
+  const q = useListQuery({ filters: { influencerId: '', workshopId: '', paymentStatus: params.get('paymentStatus') || '', attendanceStatus: '', from: '', to: '' } });
   const { data, meta, loading, error, reload } = useFetch('/leads', q.params);
   const influencers = useInfluencerOptions();
   const workshops = useWorkshopOptions();

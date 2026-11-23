@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, Select, StatusBadge } from '../../components/ui';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
@@ -7,7 +8,8 @@ const opt = (arr) => arr.map((v) => ({ value: v, label: v.replace(/_/g, ' ').rep
 
 export default function InfluencerLeads() {
   useDocumentTitle('My leads');
-  const q = useListQuery({ filters: { workshopId: '', paymentStatus: '', attendanceStatus: '' } });
+  const [params] = useSearchParams();
+  const q = useListQuery({ filters: { workshopId: '', paymentStatus: params.get('paymentStatus') || '', attendanceStatus: '' } });
   const { data, meta, loading, error, reload } = useFetch('/influencers/me/leads', q.params);
   const workshops = useFetch('/influencers/me/workshops');
 
