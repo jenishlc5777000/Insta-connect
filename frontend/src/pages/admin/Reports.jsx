@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BarChart3, Users, GraduationCap, Percent, IndianRupee, BadgePercent, CalendarCheck, MousePointerClick, Megaphone, Banknote, CreditCard } from 'lucide-react';
-import { Card, DataTable, EmptyState, Input, PageHeader, cx } from '../../components/ui';
+import { Card, DataTable, EmptyState, Input, PageHeader, cx, FilterBar } from '../../components/ui';
 import { ExportButtons, FilterSelect, useInfluencerOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch } from '../../hooks';
 
@@ -43,7 +43,7 @@ export default function Reports() {
       </div>
       <Card title={report.label} bodyClassName="p-0">
         {report.filters.length > 0 && (
-          <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-4">
+          <FilterBar className="sm:grid-cols-4" active={Object.keys(params).length}>
             {report.filters.includes('date') && (
               <>
                 <Input type="date" value={filters.from} onChange={(e) => set('from', e.target.value)} aria-label="From" />
@@ -52,7 +52,7 @@ export default function Reports() {
             )}
             {report.filters.includes('influencer') && <FilterSelect value={filters.influencerId} onChange={(v) => set('influencerId', v)} placeholder="All influencers" options={influencers} />}
             {report.filters.includes('workshop') && <FilterSelect value={filters.workshopId} onChange={(v) => set('workshopId', v)} placeholder="All workshops" options={workshops} />}
-          </div>
+          </FilterBar>
         )}
         <DataTable rowKey="__key" columns={columns} rows={rows} loading={loading} error={error} onRetry={reload} empty={<EmptyState icon={BarChart3} title="No data for this report yet" />} />
         {meta?.truncated && <p className="border-t border-slate-100 px-4 py-3 text-xs text-slate-500">Showing the first {rows.length} of {meta.total} rows. Export to see everything.</p>}

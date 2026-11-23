@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Plus, Pencil, Trash2, ExternalLink, GraduationCap, Star } from 'lucide-react';
-import { Button, Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, StatusBadge, useConfirm } from '../../components/ui';
+import { Button, Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, StatusBadge, useConfirm, FilterBar } from '../../components/ui';
 import { FilterSelect, statusOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { del, errorMessage } from '../../services/api';
@@ -52,10 +52,9 @@ export default function AdminWorkshops() {
     <>
       <PageHeader title="Workshops" description="Create campaigns, set pricing, seats and commission." actions={<Link to="/admin/workshops/new" className="btn-primary"><Plus className="size-4" /> New workshop</Link>} />
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-3">
-          <SearchInput value={q.search} onChange={q.setSearch} placeholder="Search workshops" className="sm:col-span-2" />
+        <FilterBar className="sm:grid-cols-3" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={q.search} onChange={q.setSearch} placeholder="Search workshops" className="sm:col-span-2" />}>
           <FilterSelect value={q.filters.status} onChange={(v) => q.setFilter('status', v)} placeholder="All statuses" options={statusOptions(['draft', 'published', 'completed', 'cancelled'])} />
-        </div>
+        </FilterBar>
         <DataTable
           columns={columns}
           rows={data}

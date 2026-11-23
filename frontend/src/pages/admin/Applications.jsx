@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Check, X, Instagram, UserPlus, KeyRound, Trash2 } from 'lucide-react';
-import { Button, Card, CopyButton, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea, Badge, useConfirm } from '../../components/ui';
+import { Button, Card, CopyButton, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea, Badge, useConfirm, FilterBar } from '../../components/ui';
 import { FilterSelect, statusOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { get, post, del, errorMessage } from '../../services/api';
@@ -151,10 +151,9 @@ export default function Applications() {
     <>
       <PageHeader title="Influencer applications" description={`Instagram creators who applied through the "Join as Influencer" page.${meta?.pending ? ` ${meta.pending} waiting for review.` : ''}`} actions={<a href="/become-influencer" target="_blank" rel="noreferrer" className="btn-secondary"><UserPlus className="size-4" /> View apply page</a>} />
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-3">
-          <SearchInput value={q.search} onChange={q.setSearch} placeholder="Name, email, Instagram, city" className="sm:col-span-2" />
+        <FilterBar className="sm:grid-cols-3" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={q.search} onChange={q.setSearch} placeholder="Name, email, Instagram, city" className="sm:col-span-2" />}>
           <FilterSelect value={q.filters.status} onChange={(v) => q.setFilter('status', v)} placeholder="All statuses" options={statusOptions(['pending', 'approved', 'rejected'])} />
-        </div>
+        </FilterBar>
         <DataTable
           columns={columns}
           rows={data}

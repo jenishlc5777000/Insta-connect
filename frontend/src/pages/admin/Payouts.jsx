@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Banknote, CheckCircle2, XCircle, Send, AlertTriangle } from 'lucide-react';
-import { Badge, Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, Select, StatusBadge, Textarea } from '../../components/ui';
+import { Badge, Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, Select, StatusBadge, Textarea, FilterBar } from '../../components/ui';
 import { ExportButtons, FilterSelect, statusOptions, useInfluencerOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { patch, post, errorMessage } from '../../services/api';
@@ -115,10 +115,10 @@ export default function AdminPayouts() {
       </Card>
 
       <Card title="Payout history" bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-3">
+        <FilterBar className="sm:grid-cols-3" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length}>
           <FilterSelect value={q.filters.status} onChange={(v) => q.setFilter('status', v)} placeholder="Any status" options={statusOptions(['pending', 'paid', 'failed'])} />
           <FilterSelect value={q.filters.influencerId} onChange={(v) => q.setFilter('influencerId', v)} placeholder="All influencers" options={influencers} />
-        </div>
+        </FilterBar>
         <DataTable
           rows={history.data}
           loading={history.loading}

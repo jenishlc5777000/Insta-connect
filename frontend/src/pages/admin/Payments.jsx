@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { RotateCcw, CreditCard, AlertTriangle } from 'lucide-react';
-import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea } from '../../components/ui';
+import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, StatusBadge, Textarea, FilterBar } from '../../components/ui';
 import { ExportButtons, FilterSelect, statusOptions, useInfluencerOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { post, errorMessage } from '../../services/api';
@@ -65,15 +65,14 @@ export default function AdminPayments() {
     <>
       <PageHeader title="Payments" description="Verified by Razorpay signature and webhooks." actions={<ExportButtons url="/reports/payments" params={q.params} name="payments" />} />
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SearchInput value={q.search} onChange={q.setSearch} placeholder="Customer, order or payment ID" className="lg:col-span-2" />
+        <FilterBar className="sm:grid-cols-2 lg:grid-cols-4" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={q.search} onChange={q.setSearch} placeholder="Customer, order or payment ID" className="lg:col-span-2" />}>
           <FilterSelect value={q.filters.status} onChange={(v) => q.setFilter('status', v)} placeholder="Any status" options={statusOptions(['created', 'captured', 'failed'])} />
           <FilterSelect value={q.filters.refundStatus} onChange={(v) => q.setFilter('refundStatus', v)} placeholder="Any refund status" options={statusOptions(['none', 'pending', 'partial', 'full'])} />
           <FilterSelect value={q.filters.influencerId} onChange={(v) => q.setFilter('influencerId', v)} placeholder="All influencers" options={influencers} />
           <FilterSelect value={q.filters.workshopId} onChange={(v) => q.setFilter('workshopId', v)} placeholder="All workshops" options={workshops} />
           <Input type="date" value={q.filters.from} onChange={(e) => q.setFilter('from', e.target.value)} aria-label="From" />
           <Input type="date" value={q.filters.to} onChange={(e) => q.setFilter('to', e.target.value)} aria-label="To" />
-        </div>
+        </FilterBar>
         <DataTable columns={columns} rows={data} loading={loading} error={error} onRetry={reload} sort={q.sort} onSort={q.toggleSort} empty={<EmptyState icon={CreditCard} title="No payments yet" />} />
         <Pagination meta={meta} onPage={q.setPage} />
       </Card>

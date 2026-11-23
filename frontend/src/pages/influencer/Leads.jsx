@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { Users } from 'lucide-react';
-import { Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, Select, StatusBadge } from '../../components/ui';
+import { Card, DataTable, EmptyState, PageHeader, Pagination, SearchInput, Select, StatusBadge, FilterBar } from '../../components/ui';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { formatDate, formatINR } from '../../utils/format';
 
@@ -27,12 +27,11 @@ export default function InfluencerLeads() {
     <>
       <PageHeader title="My leads" description="Everyone who registered through your links. Contact details are hidden for privacy." />
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-4">
-          <SearchInput value={q.search} onChange={q.setSearch} placeholder="Search by name or city" className="sm:col-span-1" />
+        <FilterBar className="sm:grid-cols-4" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={q.search} onChange={q.setSearch} placeholder="Search by name or city" className="sm:col-span-1" />}>
           <Select value={q.filters.workshopId} onChange={(e) => q.setFilter('workshopId', e.target.value)} placeholder="All workshops" options={(workshops.data || []).map((w) => ({ value: w._id, label: w.title }))} />
           <Select value={q.filters.paymentStatus} onChange={(e) => q.setFilter('paymentStatus', e.target.value)} placeholder="Any payment status" options={opt(['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])} />
           <Select value={q.filters.attendanceStatus} onChange={(e) => q.setFilter('attendanceStatus', e.target.value)} placeholder="Any attendance" options={opt(['pending', 'attended', 'absent'])} />
-        </div>
+        </FilterBar>
         <DataTable
           columns={columns}
           rows={data}

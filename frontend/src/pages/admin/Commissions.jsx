@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Check, X, BadgePercent, Hourglass, BadgeCheck, CheckCircle2, Undo2 } from 'lucide-react';
-import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, StatCard, StatusBadge, Textarea } from '../../components/ui';
+import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, StatCard, StatusBadge, Textarea, FilterBar } from '../../components/ui';
 import { ExportButtons, FilterSelect, statusOptions, useInfluencerOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { patch, post, errorMessage } from '../../services/api';
@@ -84,13 +84,13 @@ export default function AdminCommissions() {
         <StatCard label="Reversed / rejected" value={formatINR((s?.reversed || 0) + (s?.rejected || 0))} icon={Undo2} tone="purple" hint={s?.clawbackOutstanding ? `${formatINR(s.clawbackOutstanding)} clawback` : undefined} loading={summary.loading} />
       </div>
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <FilterBar className="sm:grid-cols-2 lg:grid-cols-5" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length}>
           <FilterSelect value={q.filters.status} onChange={(v) => q.setFilter('status', v)} placeholder="All statuses" options={statusOptions(['pending', 'approved', 'paid', 'rejected', 'reversed'])} />
           <FilterSelect value={q.filters.influencerId} onChange={(v) => q.setFilter('influencerId', v)} placeholder="All influencers" options={influencers} />
           <FilterSelect value={q.filters.workshopId} onChange={(v) => q.setFilter('workshopId', v)} placeholder="All campaigns" options={workshops} />
           <Input type="date" value={q.filters.from} onChange={(e) => q.setFilter('from', e.target.value)} aria-label="From" />
           <Input type="date" value={q.filters.to} onChange={(e) => q.setFilter('to', e.target.value)} aria-label="To" />
-        </div>
+        </FilterBar>
         {selected.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-brand-50/50 px-4 py-2.5 text-sm">
             <span className="font-medium text-navy">{selected.length} selected</span>

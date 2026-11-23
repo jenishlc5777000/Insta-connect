@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   ArrowLeft, Pencil, KeyRound, Trash2, MousePointerClick, Users, BadgeCheck, IndianRupee, Wallet, CheckCircle2, Percent, ClipboardCheck, Undo2, Instagram,
 } from 'lucide-react';
-import { Button, Card, CopyButton, DataTable, EmptyState, ErrorState, Modal, Pagination, SearchInput, Skeleton, StatusBadge, Tabs, useConfirm } from '../../components/ui';
+import { Button, Card, CopyButton, DataTable, EmptyState, ErrorState, Modal, Pagination, SearchInput, Skeleton, StatusBadge, Tabs, useConfirm, FilterBar } from '../../components/ui';
 import { SourcesChart } from '../../dashboards/Charts';
 import { MiniStat, PerformanceLegend, PerformanceOverview, TrendCard } from '../../dashboards/Widgets';
 import InfluencerForm from './InfluencerForm';
@@ -189,12 +189,11 @@ export default function InfluencerDetail() {
         <Card bodyClassName="p-0">
           {tab === 'leads' && (
             <>
-              <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
-                <SearchInput value={lq.search} onChange={lq.setSearch} placeholder="Name, email or phone" />
+              <FilterBar className="sm:grid-cols-2 lg:grid-cols-4" active={Object.entries(lq.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={lq.search} onChange={lq.setSearch} placeholder="Name, email or phone" />}>
                 <FilterSelect value={lq.filters.workshopId} onChange={(v) => lq.setFilter('workshopId', v)} placeholder="All workshops" options={workshopOptions} />
                 <FilterSelect value={lq.filters.paymentStatus} onChange={(v) => lq.setFilter('paymentStatus', v)} placeholder="Any payment" options={statusOptions(['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])} />
                 <FilterSelect value={lq.filters.attendanceStatus} onChange={(v) => lq.setFilter('attendanceStatus', v)} placeholder="Any attendance" options={statusOptions(['pending', 'attended', 'absent'])} />
-              </div>
+              </FilterBar>
               <DataTable
                 rows={leads.data}
                 loading={leads.loading}

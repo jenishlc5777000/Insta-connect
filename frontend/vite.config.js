@@ -10,9 +10,10 @@ export default defineConfig({
     port: 5173,
     host: true,
     allowedHosts: ['.localhost', '.jencorps.com'],
+    // DEV_API_TARGET lets a second local copy (e.g. a test stack) point at another backend port
     proxy: {
-      '/api': { target: 'http://localhost:5000', changeOrigin: false, xfwd: true },
-      '/uploads': { target: 'http://localhost:5000', changeOrigin: false },
+      '/api': { target: process.env.DEV_API_TARGET || 'http://localhost:5000', changeOrigin: false, xfwd: true },
+      '/uploads': { target: process.env.DEV_API_TARGET || 'http://localhost:5000', changeOrigin: false },
     },
   },
   build: {

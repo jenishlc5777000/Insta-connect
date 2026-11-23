@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
-import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Inbox, Loader2, Search, X, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Inbox, Loader2, Search, X, Copy, Check, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
 import { STATUS_TONES, titleCase } from '../../utils/format';
 import { useCopy } from '../../hooks';
 
@@ -108,6 +108,30 @@ export function SearchInput({ value, onChange, placeholder = 'Search…', classN
     <div className={cx('relative', className)}>
       <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
       <input className="input pl-9" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type="search" />
+    </div>
+  );
+}
+
+/**
+ * Filter area for list pages. Phones: search + a "Filters (n)" toggle, so long filter lists don't push
+ * the data off-screen. Larger screens: everything in one grid (pass grid columns via className).
+ */
+export function FilterBar({ search, children, active = 0, className }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-100 p-4">
+      <div className="flex gap-2 sm:hidden">
+        {search && <div className="min-w-0 flex-1">{search}</div>}
+        {children && (
+          <Button type="button" variant={active ? 'primary' : 'secondary'} icon={SlidersHorizontal} onClick={() => setOpen((o) => !o)} aria-expanded={open} className={cx(!search && 'w-full')}>
+            {active ? `Filters (${active})` : 'Filters'}
+          </Button>
+        )}
+      </div>
+      <div className={cx('gap-3', open ? 'mt-3 grid' : 'hidden', 'sm:mt-0 sm:grid', className)}>
+        {search && <div className="hidden sm:contents">{search}</div>}
+        {children}
+      </div>
     </div>
   );
 }
@@ -270,7 +294,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3.5">{footer}</div>}
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))]">{footer}</div>}
       </div>
     </div>,
     document.body
@@ -304,32 +328,78 @@ export function ConfirmDialog({ open, title = 'Are you sure?', message, confirmL
 /* ---------------------------------- Table --------------------------------- */
 /**
  * columns: [{ key, header, render?(row), sortable?, className? }]
- * Responsive: horizontal scroll on small screens; optional mobile card renderer.
+ * Phones (< md): every row becomes a card. Pass `mobileCard(row)` for a custom card; otherwise one is
+ * built from the columns: first column = title, other columns = labelled fields, columns with an
+ * empty header (action buttons) along the bottom. Pass mobileCard={false} to keep the scrolling table.
  */
 export function DataTable({ columns, rows, loading, error, onRetry, sort, onSort, empty, rowKey = '_id', selectable, selected = [], onSelect, mobileCard }) {
   const allSelected = selectable && rows?.length > 0 && rows.every((r) => selected.includes(r[rowKey]));
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
 
-  return (
-    <>
-      {mobileCard && (
-        <div className="divide-y divide-slate-100 md:hidden">
-          {loading && !rows?.length
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="space-y-2 p-4">
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              ))
-            : rows?.map((r) => (
-                <div key={r[rowKey]} className="p-4">
-                  {mobileCard(r)}
+  const cell = (c, r) => (c.render ? c.render(r) : r[c.key] ?? '—');
+  const toggle = (id) => onSelect(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+  const autoCard = (r) => {
+    const [first, ...rest] = columns;
+    const fields = rest.filter((c) => c.header);
+    const actions = rest.filter((c) => !c.header);
+    return (
+      <div className="flex gap-3">
+        {selectable && (
+          <input type="checkbox" className="mt-1 size-4 shrink-0 rounded accent-brand" checked={selected.includes(r[rowKey])} onChange={() => toggle(r[rowKey])} aria-label="Select row" />
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="min-w-0 break-words text-sm">{cell(first, r)}</div>
+          {fields.length > 0 && (
+            <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {fields.map((c) => (
+                <div key={c.key} className="min-w-0">
+                  <dt className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{c.header}</dt>
+                  <dd className="mt-0.5 break-words text-sm text-slate-700">{cell(c, r)}</dd>
                 </div>
               ))}
+            </dl>
+          )}
+          {actions.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center justify-end gap-1 border-t border-slate-100 pt-2">
+              {actions.map((c) => (
+                <div key={c.key}>{cell(c, r)}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  const card = mobileCard === false ? null : mobileCard || autoCard;
+
+  return (
+    <>
+      {card && (
+        <div className="md:hidden">
+          {selectable && rows?.length > 0 && (
+            <label className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-4 py-2.5 text-xs font-medium text-slate-500">
+              <input type="checkbox" className="size-4 rounded accent-brand" checked={allSelected} onChange={() => onSelect(allSelected ? [] : rows.map((r) => r[rowKey]))} />
+              Select all on this page
+            </label>
+          )}
+          <div className="divide-y divide-slate-100">
+            {loading && !rows?.length
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-2 p-4">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))
+              : rows?.map((r) => (
+                  <div key={r[rowKey]} className={cx('p-4', loading && 'opacity-60')}>
+                    {card(r)}
+                  </div>
+                ))}
+          </div>
           {!loading && !rows?.length && (empty || <EmptyState />)}
         </div>
       )}
-      <div className={cx('overflow-x-auto', mobileCard && 'hidden md:block')}>
+      <div className={cx('overflow-x-auto', card && 'hidden md:block')}>
         <table className="min-w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/60 text-xs uppercase tracking-wide text-slate-500">

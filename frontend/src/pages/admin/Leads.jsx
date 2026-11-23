@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Pencil, Shuffle, Megaphone, CheckCheck, X as XIcon, Eye, Trash2 } from 'lucide-react';
 import LeadDetail from './LeadDetail';
-import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Textarea, useConfirm } from '../../components/ui';
+import { Button, Card, DataTable, EmptyState, Field, Input, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Textarea, useConfirm, FilterBar } from '../../components/ui';
 import { ExportButtons, FilterSelect, statusOptions, useInfluencerOptions, useWorkshopOptions } from './shared';
 import { useDocumentTitle, useFetch, useListQuery } from '../../hooks';
 import { get, patch, post, errorMessage, applyFieldErrors } from '../../services/api';
@@ -155,15 +155,14 @@ export default function AdminLeads() {
     <>
       <PageHeader title="Leads" description="All workshop registrations with referral attribution." actions={<ExportButtons url="/leads/export" params={q.params} name="leads" />} />
       <Card bodyClassName="p-0">
-        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SearchInput value={q.search} onChange={q.setSearch} placeholder="Name, email or phone" className="lg:col-span-2" />
+        <FilterBar className="sm:grid-cols-2 lg:grid-cols-4" active={Object.entries(q.filters).filter(([k, v]) => v && k !== 'scope').length} search={<SearchInput value={q.search} onChange={q.setSearch} placeholder="Name, email or phone" className="lg:col-span-2" />}>
           <FilterSelect value={q.filters.influencerId} onChange={(v) => q.setFilter('influencerId', v)} placeholder="All influencers" options={[{ value: 'none', label: 'Direct (no influencer)' }, ...influencers]} />
           <FilterSelect value={q.filters.workshopId} onChange={(v) => q.setFilter('workshopId', v)} placeholder="All workshops" options={workshops} />
           <FilterSelect value={q.filters.paymentStatus} onChange={(v) => q.setFilter('paymentStatus', v)} placeholder="Any payment" options={statusOptions(['pending', 'paid', 'failed', 'refunded', 'partially_refunded', 'not_required'])} />
           <FilterSelect value={q.filters.attendanceStatus} onChange={(v) => q.setFilter('attendanceStatus', v)} placeholder="Any attendance" options={statusOptions(['pending', 'attended', 'absent'])} />
           <Input type="date" value={q.filters.from} onChange={(e) => q.setFilter('from', e.target.value)} aria-label="From date" />
           <Input type="date" value={q.filters.to} onChange={(e) => q.setFilter('to', e.target.value)} aria-label="To date" />
-        </div>
+        </FilterBar>
         {selected.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-brand-50/50 px-4 py-2.5 text-sm">
             <span className="font-medium text-navy">{selected.length} selected</span>

@@ -31,6 +31,9 @@
   body { @apply bg-slate-50 text-slate-800 antialiased font-sans; }
   h1, h2, h3, h4 { @apply font-display text-navy; }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand; }
+  /* Grid/flex children default to min-width:auto, so one wide table or long URL stretches the whole
+     page on phones. Let them shrink; wide content then scrolls/truncates inside its own box. */
+  .grid > *, .card { min-width: 0; }
 }
 
 @layer components {
